@@ -670,7 +670,7 @@ body.pad #touch{display:none!important}
 
 <div id="loading"><div class="logo"><span class="a" style="font-size:60px">RALLY</span><span class="b" style="font-size:36px">RACING</span></div><div id="loadBar"><i></i></div><div id="loadTxt">Lade …</div></div>
 <div id="rotate"><div style="font-size:60px">⟳</div>Bitte das Handy quer halten</div>
-<div class="ver" id="ver">Rally Racing v14.2</div>
+<div class="ver" id="ver">Rally Racing v14.3</div>
 
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
 <script type="module">
@@ -2208,17 +2208,18 @@ const $ = s => document.querySelector(s);
 const $$ = s => document.querySelectorAll(s);
 const clamp = (x, a, b) => x < a ? a : x > b ? b : x;
 const lerp = (a, b, t) => a + (b - a) * t;
-const VERSION = 'v14.2';
+const VERSION = 'v14.3';
 const isTouch = matchMedia('(pointer:coarse)').matches || 'ontouchstart' in window;
 if (isTouch) document.body.classList.add('istouch');
 
 // ---------- Einstellungen ----------
-const DEF = { gfx: 'high', ctrl: 'touch', invert: false, horizon: true, sens: 1, aid: 0.35, abs: true, car: 'audi', stage: 'ce4', voice: true, volVoice: 1, volEngine: 0.8, volFx: 0.8, volMusic: 0.35, voiceG: 'w', fps: 0, tiltZero: 0, btn: {}, btnScale: 1, cam: 0, name: 'R. NEMEC' };
+const DEF = { gfx: 'high', ctrl: 'touch', invert: false, horizon: true, sens: 1, aid: 0.35, abs: true, car: 'audi', stage: 'ce4', voice: true, volVoice: 1, volEngine: 0.8, volFx: 0.8, volMusic: 0.25, voiceG: 'w', fps: 0, tiltZero: 0, btn: {}, btnScale: 1, cam: 0, name: 'R. NEMEC' };
 let S = { ...DEF }; try { Object.assign(S, JSON.parse(localStorage.getItem('rally.s') || '{}')); } catch (e) { }
 if (!S.v101) { S.v101 = 1; S.cam = 0; }   // einmalig: Verfolger-Kamera als Start
 if (!S.v10) { S.v10 = 1; S.fps = 0; S.tiltZero = 0; }
 if (!S.v82) { S.v82 = 1; S.voiceG = 'w'; S.voiceName = ''; S.volVoice = 1; S.volMusic = 0.35; }
 if (!S.v142) { S.v142 = 1; S.voiceG = 'm'; }   // einmalig: aufgenommene Männerstimme als Standard
+if (!S.v143) { S.v143 = 1; S.volMusic = Math.min(S.volMusic, 0.25); S.volVoice = 1; }   // einmalig: Musik leiser, Beifahrer voll
 if (!S.v8) { S.v8 = 1; S.invert = false; S.aid = 0.35; if (typeof S.stage !== 'string') S.stage = 'ce4'; }
 const save = () => { try { localStorage.setItem('rally.s', JSON.stringify(S)); } catch (e) { } };
 const LS = { get: (k, d = null) => { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } }, set: (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { } }, del: k => { try { localStorage.removeItem(k); } catch (e) { } } };
@@ -2906,8 +2907,8 @@ let lastThr = 0, popT = 0, stoneT = 0;
 let wob = 0;
 function updAudio(dt) {
   if (DUCK.n && !voxBusy() && 'speechSynthesis' in window && !speechSynthesis.speaking && !speechSynthesis.pending) DUCK.n = 0;
-  DUCK.v += ((DUCK.n > 0 ? 0.3 : 1) - DUCK.v) * Math.min(1, dt * (DUCK.n > 0 ? 10 : 2.5));
-  if (AU.eng) { AU.eng.gain.value = S.volEngine * (0.55 + 0.45 * DUCK.v); AU.fx.gain.value = S.volFx * (0.6 + 0.4 * DUCK.v); }
+  DUCK.v += ((DUCK.n > 0 ? 0.15 : 1) - DUCK.v) * Math.min(1, dt * (DUCK.n > 0 ? 10 : 2.5));
+  if (AU.eng) { AU.eng.gain.value = S.volEngine * (0.4 + 0.6 * DUCK.v); AU.fx.gain.value = S.volFx * (0.5 + 0.5 * DUCK.v); }
   updMusic(dt);
   if (!AU.ctx) return; const ac = AU.ctx, t = ac.currentTime;
   const on = state === 'race' || state === 'count' || state === 'finish';
@@ -3144,9 +3145,13 @@ for (let d = 50; d <= 400; d += 50) VOX_MAP[String(d)] = 'd' + d;
 const VOX = { buf: {}, loading: null, src: [], end: 0, g: null };
 function voxLoad() {
   if (VOX.loading || !AU.ctx) return VOX.loading;
-  const ac = AU.ctx; VOX.g = ac.createGain(); VOX.g.connect(ac.destination);
+  const ac = AU.ctx; VOX.g = ac.createGain();
+  // Beifahrer laut und deutlich: Kompressor hebt leise Silben an, danach kräftig verstärkt (der Kompressor verhindert Übersteuern)
+  const vc = ac.createDynamicsCompressor(); vc.threshold.value = -24; vc.knee.value = 6; vc.ratio.value = 6; vc.attack.value = 0.003; vc.release.value = 0.12;
+  const mk = ac.createGain(); mk.gain.value = 2.2; VOX.g.connect(vc); vc.connect(mk); mk.connect(ac.destination);
   // Stille am Anfang und Ende der Aufnahmen abschneiden, damit die Teile flüssig ineinander übergehen
-  const trim = b => { const d = b.getChannelData(0), th = 0.012; let a = 0, e = d.length - 1; while (a < e && Math.abs(d[a]) < th) a++; while (e > a && Math.abs(d[e]) < th) e--;
+  const trim = b => { const d = b.getChannelData(0), th = 0.012; let pk = 0; for (let i = 0; i < d.length; i++) pk = Math.max(pk, Math.abs(d[i])); if (pk > 0.01) for (let c = 0; c < b.numberOfChannels; c++) { const x = b.getChannelData(c); for (let i = 0; i < x.length; i++) x[i] *= 0.95 / pk; }   // alle Schnipsel gleich laut
+    let a = 0, e = d.length - 1; while (a < e && Math.abs(d[a]) < th) a++; while (e > a && Math.abs(d[e]) < th) e--;
     return { b, t0: Math.max(0, a / b.sampleRate - 0.015), dur: Math.min(b.duration, (e - a) / b.sampleRate + 0.06) }; };
   VOX.loading = Promise.all([...new Set(Object.values(VOX_MAP))].map(k => fetch('voice/' + k + '.mp3').then(r => r.arrayBuffer()).then(a => ac.decodeAudioData(a)).then(b => { VOX.buf[k] = trim(b); }).catch(() => { })));
   return VOX.loading;
@@ -3162,7 +3167,7 @@ function voxKeys(txt) {
 function voxPlay(txt) {
   if (!AU.ctx || AU.ctx.state !== 'running') return false;
   const keys = voxKeys(txt); if (!keys) return false;
-  const ac = AU.ctx; VOX.g.gain.value = Math.min(1, S.volVoice) * 1.1;
+  const ac = AU.ctx; VOX.g.gain.value = Math.min(1, S.volVoice);
   let t = Math.max(ac.currentTime + 0.03, VOX.end), last = null;
   keys.forEach((k, i) => { const c = VOX.buf[k], src = ac.createBufferSource(); src.buffer = c.b; src.connect(VOX.g); src.start(t, c.t0, c.dur); t += c.dur + (i < keys.length - 1 ? 0.035 : 0); VOX.src.push(src); last = src; });
   VOX.end = t; DUCK.n++;
