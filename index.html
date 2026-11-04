@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>Rally Racing</title>
 <link rel="manifest" href="manifest.webmanifest">
-<link rel="icon" href="icon-192.png">
+<link rel="icon" href="icons/icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Titillium+Web:ital,wght@0,400;0,600;0,700;0,900;1,600;1,700;1,900&display=swap" rel="stylesheet">
 <style>
@@ -173,7 +173,7 @@ body.istouch #tach{right:auto;left:50%;bottom:2px;transform:translateX(-50%) sca
 .cups{display:flex;gap:6px;justify-content:center;margin-top:4px}
 .cups i{width:18px;height:20px;display:block}
 .lvl{display:flex;gap:3px;justify-content:center}.lvl i{width:18px;height:6px;border-radius:3px;background:rgba(255,255,255,.18)}.lvl i.on{background:var(--y)}
-.th{display:inline-block;width:96px;height:96px;background:url(cars_th.png) 0 0/1800% 100% no-repeat}
+.th{display:inline-block;width:96px;height:96px;background:url(img/cars_th.png) 0 0/1800% 100% no-repeat}
 /* Schwierigkeit als Leiste */
 .dsel{flex-wrap:wrap;padding:8px 14px;border-radius:var(--rad);background:var(--card);border:1px solid var(--cardB);box-shadow:var(--shadow);width:auto;max-width:100%;gap:8px 14px}
 .dsel .dl{font:600 11px var(--f);letter-spacing:.18em;text-transform:uppercase;color:var(--sub)}
@@ -296,7 +296,7 @@ body.pad #touch{display:none!important}
 
 /* Karriere */
 .hero{position:relative;width:100%;display:flex;align-items:center;gap:16px;padding:12px 22px;border-radius:var(--rad);overflow:hidden;border:1px solid rgba(246,196,0,.55);color:#fff;cursor:pointer;text-align:left;box-shadow:var(--shadow);background:#0b1430;isolation:isolate;transition:transform .18s,box-shadow .18s}
-.hero .hbg{position:absolute;inset:0;z-index:-1;background:linear-gradient(90deg,rgba(8,14,32,.94) 0%,rgba(8,14,32,.78) 34%,rgba(8,14,32,.1) 62%,rgba(8,14,32,.25)),url(career_hero.jpg) 50% 62%/cover}
+.hero .hbg{position:absolute;inset:0;z-index:-1;background:linear-gradient(90deg,rgba(8,14,32,.94) 0%,rgba(8,14,32,.78) 34%,rgba(8,14,32,.1) 62%,rgba(8,14,32,.25)),url(img/career_hero.jpg) 50% 62%/cover}
 .hero .hin{flex:1;display:flex;flex-direction:column;gap:3px;min-width:0}
 .hero small{font:600 11px var(--f);letter-spacing:.2em;text-transform:uppercase;color:var(--y)}
 .hero b{font:italic 900 clamp(20px,3vw,32px) var(--f);text-transform:uppercase;letter-spacing:.03em;line-height:1}
@@ -376,7 +376,7 @@ body.pad #touch{display:none!important}
 .nv .nc{flex:none;font:900 26px/1 var(--f);color:rgba(255,255,255,.45);padding-bottom:3px}
 .nv:hover,.nv:focus{transform:translateX(5px);border-color:var(--cardH);outline:none}.nv:hover .nc{color:var(--y)}
 .nv.feat{min-height:clamp(70px,19vh,128px);border-color:rgba(246,196,0,.6);padding:12px 18px}
-.nv.feat .hbg{position:absolute;inset:0;z-index:-1;background:linear-gradient(90deg,rgba(8,14,32,.9) 10%,rgba(8,14,32,.25) 75%),url(career_hero.jpg) 62% 60%/cover}
+.nv.feat .hbg{position:absolute;inset:0;z-index:-1;background:linear-gradient(90deg,rgba(8,14,32,.9) 10%,rgba(8,14,32,.25) 75%),url(img/career_hero.jpg) 62% 60%/cover}
 .nv.feat small{font:700 10.5px var(--f);letter-spacing:.22em;text-transform:uppercase;color:var(--y)}.nv.feat b{font-size:clamp(20px,2.8vw,30px)}
 .nv.feat .nc{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,#ffd83a,#e8a800);color:var(--ink);font-size:26px}
 .nv .cbadge{position:static;flex:none;font:italic 800 10.5px var(--f);letter-spacing:.06em;padding:2px 8px;border-radius:20px;background:var(--y);color:var(--ink)}
@@ -658,7 +658,7 @@ body.pad #touch{display:none!important}
 
 <div id="loading"><div class="logo"><span class="a" style="font-size:60px">RALLY</span><span class="b" style="font-size:36px">RACING</span></div><div id="loadBar"><i></i></div><div id="loadTxt">Lade …</div></div>
 <div id="rotate"><div style="font-size:60px">⟳</div>Bitte das Handy quer halten</div>
-<div class="ver" id="ver">Rally Racing v13.9</div>
+<div class="ver" id="ver">Rally Racing v14.0</div>
 
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
 <script type="module">
@@ -2195,7 +2195,7 @@ const $ = s => document.querySelector(s);
 const $$ = s => document.querySelectorAll(s);
 const clamp = (x, a, b) => x < a ? a : x > b ? b : x;
 const lerp = (a, b, t) => a + (b - a) * t;
-const VERSION = 'v13.9';
+const VERSION = 'v14.0';
 const isTouch = matchMedia('(pointer:coarse)').matches || 'ontouchstart' in window;
 if (isTouch) document.body.classList.add('istouch');
 
@@ -2553,7 +2553,7 @@ function analyseCar(img, pos, nor, uv, idx, r0, rc, def = {}) {
 }
 async function loadCar(def, own) {
   const UB = own ? { value: 0 } : BRAKE, US = own ? { value: 1 } : CARSUN;
-  const buf = await (await fetch(def.bin)).arrayBuffer();
+  const buf = await (await fetch('cars/' + def.bin)).arrayBuffer();
   const dv = new DataView(buf); const nv = dv.getUint32(4, true), ni = dv.getUint32(8, true);
   const ranges = []; for (let k = 0; k < 10; k++) ranges.push(dv.getUint32(12 + k * 4, true));
   const hubs = new Float32Array(buf, 52, 12);
@@ -2565,7 +2565,7 @@ async function loadCar(def, own) {
   const aP = new THREE.BufferAttribute(new Float32Array(pos), 3), aN = new THREE.BufferAttribute(new Int16Array(nor), 3, true), aU = new THREE.BufferAttribute(new Uint16Array(uv), 2, true), aI = new THREE.BufferAttribute(idx, 1);
   const part = k => { const g = new THREE.BufferGeometry(); g.setAttribute('position', aP); g.setAttribute('normal', aN); g.setAttribute('uv', aU); g.setIndex(aI); g.setDrawRange(ranges[k * 2], ranges[k * 2 + 1]); return g; };
   const tl = new THREE.TextureLoader();
-  const dT = await new Promise((res, rej) => tl.load(def.d, t => { t.anisotropy = 8; res(t); }, undefined, rej));
+  const dT = await new Promise((res, rej) => tl.load('cars/' + def.d, t => { t.anisotropy = 8; res(t); }, undefined, rej));
   dT.colorSpace = THREE.SRGBColorSpace;
   const A = analyseCar(dT.image, pos, nor, uv, idx, ranges[0], ranges[1], def);
   const mk = isBody => {
@@ -2882,7 +2882,7 @@ function updAudio(dt) {
 
 // ---------- Musik: Titelsong im Menü, zufällige Playlist im Rennen, nur weiche Überblendungen ----------
 const MUS = {
-  title: { f: 'Titel.mp3', n: 'Titelmusik' },
+  title: { f: 'audio/Titel.mp3', n: 'Titelmusik' },
   race: [],   // wird beim Start aus dem Musik-Ordner gelesen (siehe loadPlaylist)
   el: [], cur: -1, mode: null, hist: [], fade: null, started: false, name: '',
 };
@@ -4145,7 +4145,7 @@ function showCareerProgress() {
 let afterClass = null;
 function showClassUnlock(id, hard) {
   const c = id ? catOf(id) : null;
-  $('#ccImg').style.backgroundImage = c ? `url(cls_${c.id}.jpg)` : 'url(cls_grpb.jpg)';
+  $('#ccImg').style.backgroundImage = c ? `url(img/cls_${c.id}.jpg)` : 'url(img/cls_grpb.jpg)';
   $('#ccTitle').innerHTML = hard ? 'Experte <em>freigeschaltet!</em>' : `${c.name} <em>freigeschaltet!</em>`;
   $('#ccSub').textContent = hard ? 'Alle 6 Rallyes geschafft. Auf Experte gibt es jetzt 1,5-fache Punkte.' : `Glückwunsch! Neue Fahrzeugklasse: ${c.sub}. Dein erstes Auto: ${CARS[id].name}.`;
   const cols = ['#f6c400', '#e22233', '#ffffff', '#5fe6ff', '#3c3'];
@@ -4260,7 +4260,7 @@ function renderCats() {
   $('#catBack').onclick = () => show(MODE === 'quick' ? 'stages' : 'rallies');
   $('#catSub').textContent = (MODE === 'champ' ? `${SEL.rally.name} · Klasse gilt für alle 5 Etappen` : `${SEL.rally.short} · ${SEL.rally.stages[SEL.stage].label} ${SEL.rally.stages[SEL.stage].name}`) + ' · ' + (SEL.diff || DIFFS[0]).name;
   $('#catGrid').innerHTML = CATS.map((c, i) => { const tr = trophyOf(SEL.rally.id, c.id); return `<button class="card2 cc" data-cat="${i}">
-    <div class="vis" style="background-image:url(cls_${c.id}.jpg)"><span class="cnt">${c.cars.length} Autos</span></div>
+    <div class="vis" style="background-image:url(img/cls_${c.id}.jpg)"><span class="cnt">${c.cars.length} Autos</span></div>
     <div class="bd"><div class="t1">${c.name}</div><div class="t2 wrap">${c.sub}</div>
       <div class="lvlw"><div class="lvl">${[1, 2, 3, 4].map(k => `<i class="${k <= c.lvl ? 'on' : ''}"></i>`).join('')}</div><span>Stufe ${c.lvl} · ${LVLN[c.lvl]}</span></div>
       <div class="t4">${MODE === 'champ' ? (tr ? `<i class="cup">${cupSVG(tr)}</i>` + ['', 'Gold', 'Silber', 'Bronze'][tr] + '-Pokal' : 'Noch kein Pokal') : c.cars.slice(0, 2).map(id => CARS[id].name).join(' · ') + (c.cars.length > 2 ? ' +' + (c.cars.length - 2) : '')}</div></div></button>`; }).join('');
