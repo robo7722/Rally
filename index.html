@@ -670,7 +670,7 @@ body.pad #touch{display:none!important}
 
 <div id="loading"><div class="logo"><span class="a" style="font-size:60px">RALLY</span><span class="b" style="font-size:36px">RACING</span></div><div id="loadBar"><i></i></div><div id="loadTxt">Lade …</div></div>
 <div id="rotate"><div style="font-size:60px">⟳</div>Bitte das Handy quer halten</div>
-<div class="ver" id="ver">Rally Racing v14.3</div>
+<div class="ver" id="ver">Rally Racing v14.4</div>
 
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
 <script type="module">
@@ -2208,7 +2208,7 @@ const $ = s => document.querySelector(s);
 const $$ = s => document.querySelectorAll(s);
 const clamp = (x, a, b) => x < a ? a : x > b ? b : x;
 const lerp = (a, b, t) => a + (b - a) * t;
-const VERSION = 'v14.3';
+const VERSION = 'v14.4';
 const isTouch = matchMedia('(pointer:coarse)').matches || 'ontouchstart' in window;
 if (isTouch) document.body.classList.add('istouch');
 
@@ -2329,8 +2329,8 @@ const GradeShader = {
         float wB = max(smoothstep(0.2, 0.5, abs(c.x)), smoothstep(0.24, 0.5, c.y) * 0.8);
         if (wB > 0.01) {
           vec3 acc = col; vec2 d = c * uBlur * 0.1 * wB;
-          for (int i = 1; i <= 6; i++) acc += texture2D(tDiffuse, vUv - d * float(i) / 6.0).rgb;
-          col = mix(col, acc / 7.0, wB);
+          for (int i = 1; i <= 11; i++) acc += texture2D(tDiffuse, vUv - d * float(i) / 11.0).rgb;   // 11 Schritte: weicher Verlauf statt einzelner Kopien
+          col = mix(col, acc / 12.0, wB);
         }
       }
       col.r = mix(col.r, texture2D(tDiffuse, vUv + c * uCA).r, 0.85); col.b = mix(col.b, texture2D(tDiffuse, vUv - c * uCA).b, 0.85);
@@ -2402,8 +2402,7 @@ const RaysShader = {
     void main(){
       vec2 d = uSun - vUv; float dist = length(d * vec2(uAspect, 1.0));
       vec2 st = d * (0.9 / float(N));
-      float j = fract(sin(dot(vUv * 571.0 + uJit, vec2(12.9898, 78.233))) * 43758.5453);   // Versatz gegen Streifenmuster
-      vec2 uv = vUv + st * j; vec3 acc = vec3(0.0); float w = 1.0;
+      vec2 uv = vUv + st * 0.5; vec3 acc = vec3(0.0); float w = 1.0;
       for (int i = 0; i < N; i++) {
         float sky = step(0.99999, texture2D(tDepth, uv).r);
         vec2 q = (uv - uSun) * vec2(uAspect, 1.0); float core = exp(-dot(q, q) * 26.0);   // nur der helle Himmel nahe der Sonne strahlt
@@ -2449,9 +2448,9 @@ function setupPost() {
   rt.depthTexture = new THREE.DepthTexture(innerWidth, innerHeight);   // für Lichtstrahlen und Sonnen-Verdeckung
   composer = new EffectComposer(renderer, rt);
   RP = new RenderPass(scene, camera); composer.addPass(RP);
-  RAYS = new RaysPass(S.gfx === 'ultra' ? 0.5 : 0.25); composer.addPass(RAYS);
+  RAYS = new RaysPass(0.5); composer.addPass(RAYS);
   const bloom = new UnrealBloomPass(new THREE.Vector2(innerWidth / 2, innerHeight / 2), 0.24, 0.5, 0.92);
-  const bs = bloom.setSize.bind(bloom); const bd = isTouch ? 3 : 2; bloom.setSize = (w, h) => bs(Math.max(64, w / bd), Math.max(64, h / bd));   // Leuchten in halber (Handy: Drittel-)Auflösung: sieht gleich aus, kostet ein Viertel
+  const bs = bloom.setSize.bind(bloom); bloom.setSize = (w, h) => bs(Math.max(64, w / 2), Math.max(64, h / 2));   // Leuchten in halber Auflösung: sieht gleich aus, kostet ein Viertel
   composer.addPass(bloom); BLOOM = bloom;
   gradePass = new ShaderPass(GradeShader); composer.addPass(gradePass); gradePass.uniforms.tDirt.value = dirtTex();
 }
@@ -3971,7 +3970,7 @@ function render(dt) {
     camera.getWorldDirection(_cd);
     const rv = !NIGHT && _sp.z < 1 && Math.abs(_sp.x) < 1.6 && Math.abs(_sp.y) < 1.6 && _cd.dot(sunDir) > 0;
     RAYS.enabled = vis && !NIGHT || rv; gu.uRays.value = rv ? 0.55 * clamp(1.9 - Math.max(Math.abs(_sp.x), Math.abs(_sp.y)), 0, 1) : 0;
-    gu.uSharp.value = (isTouch ? 0.45 : 0.3) + (1 - resScale) * 0.8;
+    gu.uSharp.value = (isTouch ? 0.22 : 0.15) + (1 - resScale) * 0.4;
     gu.uFlash.value *= Math.exp(-dt * 8);
     const racing = car && (state === 'race' || state === 'finish');
     const sf = racing && S.cam !== 2 ? speedFx : racing ? speedFx * 0.5 : 0;

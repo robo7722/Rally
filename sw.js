@@ -1,5 +1,5 @@
 // Rally Racing – Offline-Speicher. Bei jedem Update die Versionsnummer erhöhen.
-const CACHE = 'rally-racing-v14-3';
+const CACHE = 'rally-racing-v14-4';
 const CARS = ['audi', 'lancer', 'subaru', 'celica', 'bmw', 'fiat', 'r5', 'delta', 'escort', 'rs200', 'p959', 's4', 'p205', 'stratos', 'alpine', 'fulvia', 'mini'];
 // Beifahrer-Stimme (Conrad), kurze Schnipsel
 const VOICE = ['ach', 'd100', 'd150', 'd200', 'd250', 'd300', 'd350', 'd400', 'd50', 'eis', 'eng', 'go', 'hn', 'in', 'kuppe', 'l1', 'l2', 'l3', 'l4', 'l5', 'l6', 'lang', 'leicht', 'lg', 'mittel', 'neunzig', 'ns', 'of', 'r1', 'r2', 'r3', 'r4', 'r5', 'r6', 'ready', 'sprung', 'ziel', 'zs', 'zz'];
