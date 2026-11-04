@@ -670,7 +670,7 @@ body.pad #touch{display:none!important}
 
 <div id="loading"><div class="logo"><span class="a" style="font-size:60px">RALLY</span><span class="b" style="font-size:36px">RACING</span></div><div id="loadBar"><i></i></div><div id="loadTxt">Lade …</div></div>
 <div id="rotate"><div style="font-size:60px">⟳</div>Bitte das Handy quer halten</div>
-<div class="ver" id="ver">Rally Racing v14.1</div>
+<div class="ver" id="ver">Rally Racing v14.2</div>
 
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
 <script type="module">
@@ -2208,7 +2208,7 @@ const $ = s => document.querySelector(s);
 const $$ = s => document.querySelectorAll(s);
 const clamp = (x, a, b) => x < a ? a : x > b ? b : x;
 const lerp = (a, b, t) => a + (b - a) * t;
-const VERSION = 'v14.1';
+const VERSION = 'v14.2';
 const isTouch = matchMedia('(pointer:coarse)').matches || 'ontouchstart' in window;
 if (isTouch) document.body.classList.add('istouch');
 
@@ -2218,6 +2218,7 @@ let S = { ...DEF }; try { Object.assign(S, JSON.parse(localStorage.getItem('rall
 if (!S.v101) { S.v101 = 1; S.cam = 0; }   // einmalig: Verfolger-Kamera als Start
 if (!S.v10) { S.v10 = 1; S.fps = 0; S.tiltZero = 0; }
 if (!S.v82) { S.v82 = 1; S.voiceG = 'w'; S.voiceName = ''; S.volVoice = 1; S.volMusic = 0.35; }
+if (!S.v142) { S.v142 = 1; S.voiceG = 'm'; }   // einmalig: aufgenommene Männerstimme als Standard
 if (!S.v8) { S.v8 = 1; S.invert = false; S.aid = 0.35; if (typeof S.stage !== 'string') S.stage = 'ce4'; }
 const save = () => { try { localStorage.setItem('rally.s', JSON.stringify(S)); } catch (e) { } };
 const LS = { get: (k, d = null) => { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } }, set: (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { } }, del: k => { try { localStorage.removeItem(k); } catch (e) { } } };
@@ -2843,7 +2844,7 @@ function initAudio() {
   musicStart();
   if (AU.ctx) { if (AU.ctx.state === 'suspended') AU.ctx.resume(); return; }
   const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return;
-  const ac = new AC(); AU.ctx = ac;
+  const ac = new AC(); AU.ctx = ac; setTimeout(voxLoad, 0);   // Beifahrer-Schnipsel schon vorab laden
   const master = ac.createGain(); master.gain.value = 0.9; master.connect(ac.destination);
   const comp = ac.createDynamicsCompressor(); comp.connect(master);
   AU.eng = ac.createGain(); AU.eng.gain.value = S.volEngine; AU.eng.connect(comp);
@@ -2904,7 +2905,7 @@ function tone(freq, dur, gain, type = 'sine', slide) {
 let lastThr = 0, popT = 0, stoneT = 0;
 let wob = 0;
 function updAudio(dt) {
-  if (DUCK.n && 'speechSynthesis' in window && !speechSynthesis.speaking && !speechSynthesis.pending) DUCK.n = 0;
+  if (DUCK.n && !voxBusy() && 'speechSynthesis' in window && !speechSynthesis.speaking && !speechSynthesis.pending) DUCK.n = 0;
   DUCK.v += ((DUCK.n > 0 ? 0.3 : 1) - DUCK.v) * Math.min(1, dt * (DUCK.n > 0 ? 10 : 2.5));
   if (AU.eng) { AU.eng.gain.value = S.volEngine * (0.55 + 0.45 * DUCK.v); AU.fx.gain.value = S.volFx * (0.6 + 0.4 * DUCK.v); }
   updMusic(dt);
@@ -3133,9 +3134,48 @@ function pickVoice() {
   return vs.find(v => /de(-|_)DE/i.test(v.lang) && /google/i.test(v.name)) || vs[0];
 }
 if ('speechSynthesis' in window) speechSynthesis.onvoiceschanged = () => { CP.voice = pickVoice(); };
+// Aufgenommene Beifahrer-Stimme (Conrad): kurze Schnipsel in voice/, werden zu einer Ansage aneinandergereiht.
+// Kommt ein Wort vor, für das es keinen Schnipsel gibt, spricht die Gerätestimme die ganze Ansage.
+const VOX_MAP = { 'achtung': 'ach', 'haarnadel': 'hn', 'lang': 'lang', 'zieht zu': 'zz', 'öffnet': 'of', 'nicht schneiden': 'ns', 'in': 'in', 'lange gerade': 'lg',
+  'zuschauer auf der strecke': 'zs', 'leicht': 'leicht', 'mittel': 'mittel', 'eng': 'eng', 'neunzig': 'neunzig', 'kuppe': 'kuppe', 'sprung': 'sprung', 'eis': 'eis',
+  'los gehts': 'go', 'ziel gut gemacht': 'ziel', 'beifahrer bereit': 'ready' };
+for (let i = 1; i <= 6; i++) { VOX_MAP['links ' + i] = 'l' + i; VOX_MAP['rechts ' + i] = 'r' + i; }
+for (let d = 50; d <= 400; d += 50) VOX_MAP[String(d)] = 'd' + d;
+const VOX = { buf: {}, loading: null, src: [], end: 0, g: null };
+function voxLoad() {
+  if (VOX.loading || !AU.ctx) return VOX.loading;
+  const ac = AU.ctx; VOX.g = ac.createGain(); VOX.g.connect(ac.destination);
+  // Stille am Anfang und Ende der Aufnahmen abschneiden, damit die Teile flüssig ineinander übergehen
+  const trim = b => { const d = b.getChannelData(0), th = 0.012; let a = 0, e = d.length - 1; while (a < e && Math.abs(d[a]) < th) a++; while (e > a && Math.abs(d[e]) < th) e--;
+    return { b, t0: Math.max(0, a / b.sampleRate - 0.015), dur: Math.min(b.duration, (e - a) / b.sampleRate + 0.06) }; };
+  VOX.loading = Promise.all([...new Set(Object.values(VOX_MAP))].map(k => fetch('voice/' + k + '.mp3').then(r => r.arrayBuffer()).then(a => ac.decodeAudioData(a)).then(b => { VOX.buf[k] = trim(b); }).catch(() => { })));
+  return VOX.loading;
+}
+function voxKeys(txt) {
+  const w = txt.toLowerCase().replace(/['’]/g, '').replace(/[,.!?]+/g, ' ').trim().split(/\s+/), out = [];
+  for (let i = 0; i < w.length;) {
+    let k = null, n = 4; for (; n >= 1 && !k; n--) k = VOX_MAP[w.slice(i, i + n).join(' ')];
+    if (!k || !VOX.buf[k]) return null; out.push(k); i += n + 1;
+  }
+  return out;
+}
+function voxPlay(txt) {
+  if (!AU.ctx || AU.ctx.state !== 'running') return false;
+  const keys = voxKeys(txt); if (!keys) return false;
+  const ac = AU.ctx; VOX.g.gain.value = Math.min(1, S.volVoice) * 1.1;
+  let t = Math.max(ac.currentTime + 0.03, VOX.end), last = null;
+  keys.forEach((k, i) => { const c = VOX.buf[k], src = ac.createBufferSource(); src.buffer = c.b; src.connect(VOX.g); src.start(t, c.t0, c.dur); t += c.dur + (i < keys.length - 1 ? 0.035 : 0); VOX.src.push(src); last = src; });
+  VOX.end = t; DUCK.n++;
+  last.onended = () => { DUCK.n = Math.max(0, DUCK.n - 1); if (ac.currentTime >= VOX.end - 0.01) VOX.src = []; };
+  return true;
+}
+function voxStop() { for (const s of VOX.src) { try { s.stop(); } catch (e) { } } VOX.src = []; VOX.end = 0; }
+const voxBusy = () => AU.ctx && VOX.end > AU.ctx.currentTime;
 function say(txt, rate = 1.22) {
   (window.__said = window.__said || []).push(txt);
-  if (!S.voice || !('speechSynthesis' in window)) return;
+  if (!S.voice) return;
+  if (S.voiceG === 'm') { voxLoad(); if (voxPlay(txt)) { if (AU.ctx) tone(1900, 0.04, 0.03, 'square'); return; } }
+  if (!('speechSynthesis' in window)) return;
   try {
     const u = new SpeechSynthesisUtterance(txt); u.lang = 'de-DE'; if (!CP.voice) CP.voice = pickVoice(); if (CP.voice) u.voice = CP.voice;
     // keine erkennbar männliche Stimme vorhanden: tiefer sprechen lassen
@@ -3153,7 +3193,7 @@ function noteCall(i) {
   if (!NOTES[k].into && NOTES[k].dist) txt += ', ' + (NOTES[k].dist > 400 ? 'lange Gerade' : NOTES[k].dist);
   return { txt, last: k };
 }
-function cpReset() { CP.idx = 0; CP.cur = []; CP.key = ''; try { speechSynthesis.cancel(); } catch (e) { } renderNotes(); }
+function cpReset() { CP.idx = 0; CP.cur = []; CP.key = ''; voxStop(); try { speechSynthesis.cancel(); } catch (e) { } renderNotes(); }
 function cpUpdate() {
   const s = car.q.s, v = Math.max(8, car.u), lead = Math.max(80, v * 3.4 + 25);
   while (CP.idx < NOTES.length && NOTES[CP.idx].s0 - s < lead) {
@@ -3779,13 +3819,13 @@ function pauseGame() {
   $('#pInfo').textContent = `${STG.rally.short} · ${STG.label} · ${fmt(raceT + penalty)} · ${Math.max(0, (car.q.s - T.START) / 1000).toFixed(2).replace('.', ',')} / ${((T.FINISH - T.START) / 1000).toFixed(2).replace('.', ',')} km`;
   $('#pVer').textContent = 'RALLY RACING ' + VERSION; $('#pSong').textContent = MUS.name ? '♪ ' + MUS.name : '';
   $('#pMenu b').textContent = MODE !== 'quick' ? 'Speichern & Menü' : 'Hauptmenü';
-  $('#pause').classList.remove('hidden'); try { speechSynthesis.cancel(); } catch (e) { } if (AU.ctx) AU.ctx.suspend();
+  $('#pause').classList.remove('hidden'); voxStop(); try { speechSynthesis.cancel(); } catch (e) { } if (AU.ctx) AU.ctx.suspend();
 }
 // Steuerung (Neigung/Tasten) sofort übernehmen, auch mitten im Rennen
 function applyCtrl() { $('#touch').className = isTouch ? 'ctrl-' + S.ctrl : 'hidden'; for (const k in TCH) TCH[k] = 0; document.querySelectorAll('#touch .tb.on').forEach(b => b.classList.remove('on')); if (isTouch && S.ctrl === 'tilt') enableTilt(); applyBtnLayout(); fitT = 0; }
 function resumeGame() { $('#pause').classList.add('hidden'); $('#settings').classList.add('hidden'); applyCtrl(); state = raceT > 0 ? 'race' : 'count'; if (AU.ctx) AU.ctx.resume(); }
 function toMenu() {
-  try { speechSynthesis.cancel(); } catch (e) { }
+  voxStop(); try { speechSynthesis.cancel(); } catch (e) { }
   menuT = 0; placeCar(T.START - 2.6); show('menu');
 }
 function finishStage() {
@@ -4553,8 +4593,8 @@ function renderSettings() {
     <span>Fahrhilfe (Gegenlenken)</span>${seg('aid', [[0, 'Aus'], [0.35, 'Leicht'], [0.7, 'Stark']])}
     <span>Kamera</span>${seg('cam', CAMS.map((c, i) => [i, ['Hinten', 'Weit', 'Cockpit', 'Haube', 'Stoßst.'][i]]))}
     <h3>BEIFAHRER</h3><span>Ansagen (Stimme)</span>${seg('voice', [[true, 'An'], [false, 'Aus']])}
-    <span>Stimme</span>${seg('voiceG', [['m', 'Männlich'], ['w', 'Weiblich']])}
-    ${vs.length > 1 ? `<span>Stimme des Geräts</span><div class="seg" style="flex-wrap:wrap" id="vList">${['', ...vs.map(v => v.name)].slice(0, 7).map(n => `<button data-vn="${n}" class="${(S.voiceName || '') === n ? 'on' : ''}">${n ? n.replace(/^Google\s*/, '').slice(0, 16) : 'Automatisch'}</button>`).join('')}</div>` : ''}
+    <span>Stimme</span>${seg('voiceG', [['m', 'Conrad (Mann)'], ['w', 'Gerätestimme']])}
+    ${vs.length > 1 && S.voiceG === 'w' ? `<span>Stimme des Geräts</span><div class="seg" style="flex-wrap:wrap" id="vList">${['', ...vs.map(v => v.name)].slice(0, 7).map(n => `<button data-vn="${n}" class="${(S.voiceName || '') === n ? 'on' : ''}">${n ? n.replace(/^Google\s*/, '').slice(0, 16) : 'Automatisch'}</button>`).join('')}</div>` : ''}
     <span>Lautstärke Beifahrer</span>${rng('volVoice', 0, 1, 0.05)}
     <h3>TON &amp; MUSIK</h3><span>Musik</span>${rng('volMusic', 0, 1, 0.05)}
     <span>Motor</span>${rng('volEngine', 0, 1, 0.05)}
@@ -4565,9 +4605,9 @@ function renderSettings() {
   document.querySelectorAll('#setList .seg[data-k] button').forEach(b => b.onclick = () => {
     const k = b.parentNode.dataset.k; let v = b.dataset.v; v = v === 'true' ? true : v === 'false' ? false : isNaN(+v) ? v : +v;
     S[k] = v; save(); renderSettings(); if (k === 'ctrl') applyCtrlLater = true;
-    if (k === 'voice' && v) say('Beifahrer bereit.'); if (k === 'voiceG') { S.voiceName = ''; save(); CP.voice = pickVoice(); say('Links drei, hundert.'); }
+    if (k === 'voice' && v) say('Beifahrer bereit.'); if (k === 'voiceG') { S.voiceName = ''; save(); CP.voice = pickVoice(); say('Links 3, 100.'); }
   });
-  document.querySelectorAll('#vList button').forEach(b => b.onclick = () => { S.voiceName = b.dataset.vn; save(); CP.voice = pickVoice(); renderSettings(); say('Rechts vier, fünfzig.'); });
+  document.querySelectorAll('#vList button').forEach(b => b.onclick = () => { S.voiceName = b.dataset.vn; save(); CP.voice = pickVoice(); renderSettings(); say('Rechts 4, 50.'); });
   document.querySelectorAll('#setList input[type=range]').forEach(r => r.oninput = () => { S[r.dataset.r] = +r.value; save(); if (AU.eng) { AU.eng.gain.value = S.volEngine; AU.fx.gain.value = S.volFx; } });
   $('#profBtn').onclick = () => { afterProfile = () => openSettings(settingsFrom); $('#settings').classList.add('hidden'); show('profile'); };
   $('#layBtn').onclick = openLayout;
@@ -4665,6 +4705,7 @@ window.__sel = o => Object.assign(SEL, o);
 window.__ch = () => CH;
 window.__resScale = v => { resScale = v; resize(); };
 window.__T = () => T; window.__W = () => W; window.THREE = THREE; window.DIRT = DIRT; window.__wr = () => WRECK; window.__camI = () => ({ cam: camera.position.toArray(), tp: car.tPitch, tr: car.tRoll, y: car.y, cp: camPitch, look: camLook.toArray() });
+window.__vox = t => voxKeys(t);
 window.__post = () => composer ? { rays: RAYS.enabled, uRays: gradePass.uniforms.uRays.value, sunOn: gradePass.uniforms.uSunOn.value, sharp: gradePass.uniforms.uSharp.value, res: resScale } : null;
 window.__tris = () => { const out = {}; const add = (k, n) => out[k] = (out[k] || 0) + n; scene.traverseVisible(o => { if (!o.isMesh) return; const g = o.geometry, n = (g.index ? g.index.count : g.attributes.position.count) / 3 * (o.isInstancedMesh ? o.count : 1); const k = o.isInstancedMesh ? (W.bins.some(b => b.userData.hi.includes(o)) ? 'treeHi' : W.bins.some(b => b.userData.lo.includes(o)) ? 'treeLo' : W.bins.some(b => b.userData.und.includes(o)) ? 'und' : W.crowd.some(z => z.ims.includes(o)) ? 'crowd' : 'inst') : W.terr.includes(o) ? 'terr' : (W.road || []).includes(o) ? 'road' : 'other'; add(k, Math.round(n)); }); return out; };
 window.__orthoOn = () => { window.__ortho = new THREE.OrthographicCamera(-1.3, 1.3, 1.3625, -0.1, 0.1, 20); };
