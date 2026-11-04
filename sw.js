@@ -1,5 +1,5 @@
 // Rally Racing – Offline-Speicher. Bei jedem Update die Versionsnummer erhöhen.
-const CACHE = 'rally-racing-v14-0';
+const CACHE = 'rally-racing-v14-1';
 const CARS = ['audi', 'lancer', 'subaru', 'celica', 'bmw', 'fiat', 'r5', 'delta', 'escort', 'rs200', 'p959', 's4', 'p205', 'stratos', 'alpine', 'fulvia', 'mini'];
 const CORE = ['./', 'index.html', 'img/cars_th.png', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png', 'audio/Titel.mp3', 'img/cls_klassik.jpg', 'img/cls_grpa.jpg', 'img/cls_wrc.jpg', 'img/cls_grpb.jpg', 'img/career_hero.jpg', ...CARS.flatMap(c => ['cars/' + c + '.bin', 'cars/' + c + '_d.png'])];
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => Promise.all(CORE.map(f => c.add(new Request(f, { cache: 'reload' })).catch(() => { })))).then(() => self.skipWaiting())); });

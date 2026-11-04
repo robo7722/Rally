@@ -449,6 +449,18 @@ body.pad #touch{display:none!important}
 #profile .natgrid{max-height:none;flex:1 1 auto;min-height:0}
 #help .cols2{align-content:start}
 .card.pick,.card.cpcard{height:auto!important;width:min(560px,100%)!important}
+/* v14.1: Glückwunsch- und Pokal-Bildschirm – Knopf unter dem Text statt darüber, Bild passt sich der Höhe an */
+.ccw .btnrow.fixr,.trophy .btnrow.fixr{position:static;width:100%;margin-top:4px}
+.ccw .btnrow.fixr .mb,.trophy .btnrow.fixr .mb{flex:0 1 260px;min-width:200px}
+.ccimg{width:min(420px,70vw,calc((100vh - 230px) * 1.45));flex:none}
+.ccw p,.trophy p{max-width:min(620px,92vw);line-height:1.35}
+#cupBox svg{width:min(200px,30vh,calc(100vh - 270px))}
+/* v14.1: Autoauswahl – alle Autos in einer Reihe, Bildchen werden bei Bedarf kleiner */
+#carsel .head{grid-template-columns:44px minmax(0,1fr);width:auto}
+#carsel .head .cstrip{flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;min-width:0;max-width:100%;padding-bottom:2px}
+#carsel .head .cstrip::-webkit-scrollbar{display:none}
+#carsel .cstrip button{flex:0 1 52px;min-width:34px}
+#carsel .cstrip .th{width:100%;height:auto;aspect-ratio:1;display:block}
 </style>
 </head>
 <body>
@@ -658,7 +670,7 @@ body.pad #touch{display:none!important}
 
 <div id="loading"><div class="logo"><span class="a" style="font-size:60px">RALLY</span><span class="b" style="font-size:36px">RACING</span></div><div id="loadBar"><i></i></div><div id="loadTxt">Lade …</div></div>
 <div id="rotate"><div style="font-size:60px">⟳</div>Bitte das Handy quer halten</div>
-<div class="ver" id="ver">Rally Racing v14.0</div>
+<div class="ver" id="ver">Rally Racing v14.1</div>
 
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
 <script type="module">
@@ -669,6 +681,7 @@ import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
+import { Pass, FullScreenQuad } from 'three/addons/postprocessing/Pass.js';
 /* ======================= Etappe: Streckengenerator (deterministisch) ======================= */
 const Track = (() => {
   function mulberry(seed) { return function () { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
@@ -2195,7 +2208,7 @@ const $ = s => document.querySelector(s);
 const $$ = s => document.querySelectorAll(s);
 const clamp = (x, a, b) => x < a ? a : x > b ? b : x;
 const lerp = (a, b, t) => a + (b - a) * t;
-const VERSION = 'v14.0';
+const VERSION = 'v14.1';
 const isTouch = matchMedia('(pointer:coarse)').matches || 'ontouchstart' in window;
 if (isTouch) document.body.classList.add('istouch');
 
@@ -2296,15 +2309,20 @@ function applyLight(key) {
 // ---------- Nachbearbeitung: Farbe, Vignette, Sonne, Tempo-Unschärfe, Speed-Linien ----------
 let composer = null, gradePass = null, RP = null, BLOOM = null;
 const GradeShader = {
-  uniforms: { tDiffuse: { value: null }, uVig: { value: 0.42 }, uSat: { value: 1.08 }, uSun: { value: new THREE.Vector2(-9, -9) }, uSunOn: { value: 0 }, uAspect: { value: 1 }, uCA: { value: 0.0012 }, uFlash: { value: 0 }, uTime: { value: 0 }, uBlur: { value: 0 }, uLines: { value: 0 }, uWarm: { value: new THREE.Vector3(1.03, 1.0, 0.95) }, tDirt: { value: null }, uDirt: { value: 0 }, uCon: { value: 1.1 }, uLift: { value: new THREE.Vector3(0, 0, 0) }, uDirtCol: { value: new THREE.Color(0.35, 0.26, 0.17) } },
+  uniforms: { tDiffuse: { value: null }, uVig: { value: 0.42 }, uSat: { value: 1.08 }, uSun: { value: new THREE.Vector2(-9, -9) }, uSunOn: { value: 0 }, uAspect: { value: 1 }, uCA: { value: 0.0012 }, uFlash: { value: 0 }, uTime: { value: 0 }, uBlur: { value: 0 }, uLines: { value: 0 }, uWarm: { value: new THREE.Vector3(1.03, 1.0, 0.95) }, tDirt: { value: null }, uDirt: { value: 0 }, uCon: { value: 1.1 }, uLift: { value: new THREE.Vector3(0, 0, 0) }, uDirtCol: { value: new THREE.Color(0.35, 0.26, 0.17) }, tRays: { value: null }, uRays: { value: 0 }, tSunVis: { value: null }, uSharp: { value: 0 }, uTexel: { value: new THREE.Vector2(1 / 1024, 1 / 1024) } },
   vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }',
-  fragmentShader: `uniform sampler2D tDiffuse; uniform sampler2D tDirt; uniform float uVig, uSat, uSunOn, uAspect, uCA, uFlash, uTime, uBlur, uLines, uDirt, uCon; uniform vec2 uSun; uniform vec3 uWarm, uLift; uniform vec3 uDirtCol; varying vec2 vUv;
+  fragmentShader: `uniform sampler2D tDiffuse; uniform sampler2D tDirt; uniform float uVig, uSat, uSunOn, uAspect, uCA, uFlash, uTime, uBlur, uLines, uDirt, uCon; uniform vec2 uSun; uniform vec3 uWarm, uLift; uniform vec3 uDirtCol; uniform sampler2D tRays, tSunVis; uniform float uRays, uSharp; uniform vec2 uTexel; varying vec2 vUv;
     float lum(vec3 c){ return dot(c, vec3(.299,.587,.114)); }
     float ghost(vec2 p, float r){ vec2 d = vUv - p; d.x *= uAspect; return smoothstep(r, r*0.6, length(d)); }
     float h1(float n){ return fract(sin(n) * 43758.5453); }
     void main(){
       vec2 c = vUv - 0.5; float r = length(c * vec2(uAspect, 1.0) / uAspect * 1.4);
       vec3 col = texture2D(tDiffuse, vUv).rgb;
+      if (uSharp > 0.01) {   // Nachschärfen (gleicht die niedrigere Renderauflösung auf dem Handy aus), begrenzt gegen helle Säume
+        vec3 nb = texture2D(tDiffuse, vUv + vec2(uTexel.x, 0.0)).rgb + texture2D(tDiffuse, vUv - vec2(uTexel.x, 0.0)).rgb + texture2D(tDiffuse, vUv + vec2(0.0, uTexel.y)).rgb + texture2D(tDiffuse, vUv - vec2(0.0, uTexel.y)).rgb;
+        col += clamp((col - nb * 0.25) * uSharp, -col * 0.4, col * 0.4);
+      }
+      if (uRays > 0.001) col += texture2D(tRays, vUv).rgb * uRays;   // Lichtstrahlen (Sonne durch Bäume)
       if (uBlur > 0.002) {   // Tempo-Unschärfe nur an den Seiten und oben, die Strecke bleibt scharf
         float wB = max(smoothstep(0.2, 0.5, abs(c.x)), smoothstep(0.24, 0.5, c.y) * 0.8);
         if (wB > 0.01) {
@@ -2323,9 +2341,7 @@ const GradeShader = {
       col *= uWarm;
       col += uLift * (1.0 - smoothstep(0.0, 0.6, Lg));
       if (uSunOn > 0.0) {
-        float vis = 0.0;
-        for (int i = 0; i < 6; i++) { float a = float(i) * 1.047; vis += step(0.93, lum(linearToOutputTexel(vec4(toneMapping(texture2D(tDiffuse, uSun + vec2(cos(a), sin(a)) * 0.006).rgb), 1.0)).rgb)); }
-        vis = vis / 6.0 * uSunOn;
+        float vis = texture2D(tSunVis, vec2(0.5)).r * uSunOn;   // einmal pro Bild im 1×1-Durchgang berechnet
         vec2 d = vUv - uSun; d.x *= uAspect; float dl = length(d);
         vec3 fl = vec3(1.0, 0.85, 0.6) * (exp(-dl * 6.0) * 0.32 + exp(-abs(d.y) * 160.0) * exp(-abs(d.x) * 2.5) * 0.25);
         vec2 ax = vec2(0.5) - uSun;
@@ -2374,14 +2390,66 @@ function dirtTex() {
   for (let i = 0; i < Wd * Hd; i++) { data[i * 4] = A[i] * 255; data[i * 4 + 1] = Gs[i] * 255; data[i * 4 + 2] = 0; data[i * 4 + 3] = Th[i] * 255; }
   const t = new THREE.DataTexture(data, Wd, Hd, THREE.RGBAFormat); t.magFilter = THREE.LinearFilter; t.minFilter = THREE.LinearFilter; t.needsUpdate = true; return t;
 }
+// ---------- Lichtstrahlen: Himmel um die Sonne radial verwischen (Viertelauflösung), Bäume und Berge werfen Schattenstreifen ----------
+// Himmel = Tiefe 1 (nichts gezeichnet). Derselbe Durchgang misst in einem 1×1-Ziel, wie viel von der Sonne frei sichtbar ist (für Linsenreflexe).
+const RaysShader = {
+  uniforms: { tDiffuse: { value: null }, tDepth: { value: null }, uSun: { value: new THREE.Vector2() }, uAspect: { value: 1 }, uJit: { value: 0 } },
+  vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }',
+  fragmentShader: `uniform sampler2D tDiffuse, tDepth; uniform vec2 uSun; uniform float uAspect, uJit; varying vec2 vUv;
+    const int N = 28;
+    void main(){
+      vec2 d = uSun - vUv; float dist = length(d * vec2(uAspect, 1.0));
+      vec2 st = d * (0.9 / float(N));
+      float j = fract(sin(dot(vUv * 571.0 + uJit, vec2(12.9898, 78.233))) * 43758.5453);   // Versatz gegen Streifenmuster
+      vec2 uv = vUv + st * j; vec3 acc = vec3(0.0); float w = 1.0;
+      for (int i = 0; i < N; i++) {
+        float sky = step(0.99999, texture2D(tDepth, uv).r);
+        vec2 q = (uv - uSun) * vec2(uAspect, 1.0); float core = exp(-dot(q, q) * 26.0);   // nur der helle Himmel nahe der Sonne strahlt
+        acc += min(texture2D(tDiffuse, uv).rgb, vec3(6.0)) * sky * core * w; w *= 0.96; uv += st;
+      }
+      gl_FragColor = vec4(acc / float(N) * smoothstep(1.25, 0.1, dist), 1.0);
+    }`
+};
+const SunVisShader = {
+  uniforms: { tDepth: { value: null }, uSun: { value: new THREE.Vector2() }, uAspect: { value: 1 } },
+  vertexShader: RaysShader.vertexShader,
+  fragmentShader: `uniform sampler2D tDepth; uniform vec2 uSun; uniform float uAspect;
+    void main(){
+      float v = 0.0;
+      for (int i = 0; i < 12; i++) { float a = float(i) * 0.5236, r = i < 6 ? 0.006 : 0.013; vec2 p = uSun + vec2(cos(a) / uAspect, sin(a)) * r; v += step(0.99999, texture2D(tDepth, p).r) * step(0.0, p.x) * step(p.x, 1.0) * step(0.0, p.y) * step(p.y, 1.0); }
+      gl_FragColor = vec4(v / 12.0, 0.0, 0.0, 1.0);
+    }`
+};
+class RaysPass extends Pass {
+  constructor(scale) {
+    super(); this.needsSwap = false; this.scale = scale;
+    this.rt = new THREE.WebGLRenderTarget(64, 64, { type: THREE.HalfFloatType, depthBuffer: false });
+    this.vis = new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType, depthBuffer: false });
+    this.mat = new THREE.ShaderMaterial({ ...RaysShader, uniforms: THREE.UniformsUtils.clone(RaysShader.uniforms), depthTest: false, depthWrite: false });
+    this.vmat = new THREE.ShaderMaterial({ ...SunVisShader, uniforms: THREE.UniformsUtils.clone(SunVisShader.uniforms), depthTest: false, depthWrite: false });
+    this.q = new FullScreenQuad(this.mat); this.vq = new FullScreenQuad(this.vmat);
+  }
+  setSize(w, h) { this.rt.setSize(Math.max(32, Math.round(w * this.scale)), Math.max(32, Math.round(h * this.scale))); }
+  render(renderer, writeBuffer, readBuffer) {
+    const u = this.mat.uniforms, v = this.vmat.uniforms, g = gradePass.uniforms;
+    u.tDiffuse.value = readBuffer.texture; u.tDepth.value = v.tDepth.value = readBuffer.depthTexture;
+    u.uSun.value.copy(g.uSun.value); v.uSun.value.copy(g.uSun.value); u.uAspect.value = v.uAspect.value = g.uAspect.value; u.uJit.value = (u.uJit.value + 0.37) % 10;
+    renderer.setRenderTarget(this.vis); this.vq.render(renderer);
+    if (g.uRays.value > 0.001) { renderer.setRenderTarget(this.rt); this.q.render(renderer); }
+    g.tRays.value = this.rt.texture; g.tSunVis.value = this.vis.texture;
+  }
+}
+let RAYS = null, pauseDrawn = 0;
 function setupPost() {
-  composer = null; gradePass = null;
+  composer = null; gradePass = null; RAYS = null;
   if (S.gfx === 'low') return;
   const rt = new THREE.WebGLRenderTarget(innerWidth, innerHeight, { type: THREE.HalfFloatType, samples: S.gfx === 'ultra' ? 4 : 0 });
+  rt.depthTexture = new THREE.DepthTexture(innerWidth, innerHeight);   // für Lichtstrahlen und Sonnen-Verdeckung
   composer = new EffectComposer(renderer, rt);
   RP = new RenderPass(scene, camera); composer.addPass(RP);
+  RAYS = new RaysPass(S.gfx === 'ultra' ? 0.5 : 0.25); composer.addPass(RAYS);
   const bloom = new UnrealBloomPass(new THREE.Vector2(innerWidth / 2, innerHeight / 2), 0.24, 0.5, 0.92);
-  const bs = bloom.setSize.bind(bloom); bloom.setSize = (w, h) => bs(Math.max(64, w / 2), Math.max(64, h / 2));   // Leuchten in halber Auflösung: sieht gleich aus, kostet ein Viertel
+  const bs = bloom.setSize.bind(bloom); const bd = isTouch ? 3 : 2; bloom.setSize = (w, h) => bs(Math.max(64, w / bd), Math.max(64, h / bd));   // Leuchten in halber (Handy: Drittel-)Auflösung: sieht gleich aus, kostet ein Viertel
   composer.addPass(bloom); BLOOM = bloom;
   gradePass = new ShaderPass(GradeShader); composer.addPass(gradePass); gradePass.uniforms.tDirt.value = dirtTex();
 }
@@ -2389,7 +2457,8 @@ function resize() {
   renderer.setPixelRatio(DPR()); renderer.setSize(innerWidth, innerHeight, false);
   camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix();
   if (composer) { composer.setPixelRatio(DPR()); composer.setSize(innerWidth, innerHeight); }
-  if (gradePass) gradePass.uniforms.uAspect.value = innerWidth / innerHeight;
+  if (gradePass) { const gu = gradePass.uniforms; gu.uAspect.value = innerWidth / innerHeight; gu.uTexel.value.set(1 / (innerWidth * DPR()), 1 / (innerHeight * DPR())); }
+  pauseDrawn = 0;
 }
 addEventListener('resize', resize);
 // Automatische Auflösung: fällt die Bildrate, wird die Renderauflösung leicht gesenkt (und wieder angehoben)
@@ -3772,7 +3841,9 @@ function loop(now) {
   if (state === 'load') return;
   padMenu(dt);
   dynRes(dt);
-  if (state === 'pause') { updMusic(dt); render(dt); return; }
+  // Pause: das Bild steht still, also nur zwei Bilder zeichnen und dann die Grafikkarte schonen (Akku, Wärme)
+  if (state === 'pause') { updMusic(dt); if (pauseDrawn < 2) { render(dt); pauseDrawn++; } return; }
+  pauseDrawn = 0;
   if (state === 'carsel') { menuT += dt; renderShow(dt); updAudio(dt); return; }
   if (state === 'menu' || state === 'brief') { menuT += dt; updCarVisual(dt); menuCam(dt); updAudio(dt); animWater(dt); render(dt); return; }
   if (state === 'result') { menuT += dt; menuCam(dt); updAudio(dt); render(dt); return; }
@@ -3851,6 +3922,11 @@ function render(dt) {
     _sp.copy(camera.position).addScaledVector(sunDir, 1000).project(camera);
     const vis = _sp.z < 1 && Math.abs(_sp.x) < 1.2 && Math.abs(_sp.y) < 1.2 && camera.getWorldDirection(_cd).dot(sunDir) > 0;
     gu.uSun.value.set(_sp.x * 0.5 + 0.5, _sp.y * 0.5 + 0.5); gu.uSunOn.value = vis && !NIGHT ? 1 : 0;
+    // Lichtstrahlen nur, wenn die Sonne im Bild oder knapp daneben steht (sonst wird der Durchgang ganz übersprungen)
+    camera.getWorldDirection(_cd);
+    const rv = !NIGHT && _sp.z < 1 && Math.abs(_sp.x) < 1.6 && Math.abs(_sp.y) < 1.6 && _cd.dot(sunDir) > 0;
+    RAYS.enabled = vis && !NIGHT || rv; gu.uRays.value = rv ? 0.55 * clamp(1.9 - Math.max(Math.abs(_sp.x), Math.abs(_sp.y)), 0, 1) : 0;
+    gu.uSharp.value = (isTouch ? 0.45 : 0.3) + (1 - resScale) * 0.8;
     gu.uFlash.value *= Math.exp(-dt * 8);
     const racing = car && (state === 'race' || state === 'finish');
     const sf = racing && S.cam !== 2 ? speedFx : racing ? speedFx * 0.5 : 0;
@@ -3923,7 +3999,7 @@ function renderShow(dt) {
   const ca = 0.7 + Math.sin(menuT * 0.15) * 0.15, r = 7.6 - Math.sin(menuT * 0.2) * 0.4;
   SHOW.cam.position.set(Math.sin(ca) * r, 1.45, Math.cos(ca) * r); SHOW.cam.lookAt(0, -0.05, 0);
   SHOW.cam.aspect = innerWidth / innerHeight; SHOW.cam.updateProjectionMatrix();
-  if (composer) { const gu = gradePass.uniforms; RP.scene = SHOW.sc; RP.camera = SHOW.cam; gu.uSunOn.value = 0; gu.uVig.value = 0.55; gu.uBlur.value = 0; gu.uLines.value = 0; composer.render(dt); RP.scene = scene; RP.camera = camera; }
+  if (composer) { const gu = gradePass.uniforms; RP.scene = SHOW.sc; RP.camera = SHOW.cam; gu.uSunOn.value = 0; gu.uRays.value = 0; RAYS.enabled = false; gu.uVig.value = 0.55; gu.uBlur.value = 0; gu.uLines.value = 0; composer.render(dt); RP.scene = scene; RP.camera = camera; }
   else renderer.render(SHOW.sc, SHOW.cam);
 }
 
@@ -4589,6 +4665,7 @@ window.__sel = o => Object.assign(SEL, o);
 window.__ch = () => CH;
 window.__resScale = v => { resScale = v; resize(); };
 window.__T = () => T; window.__W = () => W; window.THREE = THREE; window.DIRT = DIRT; window.__wr = () => WRECK; window.__camI = () => ({ cam: camera.position.toArray(), tp: car.tPitch, tr: car.tRoll, y: car.y, cp: camPitch, look: camLook.toArray() });
+window.__post = () => composer ? { rays: RAYS.enabled, uRays: gradePass.uniforms.uRays.value, sunOn: gradePass.uniforms.uSunOn.value, sharp: gradePass.uniforms.uSharp.value, res: resScale } : null;
 window.__tris = () => { const out = {}; const add = (k, n) => out[k] = (out[k] || 0) + n; scene.traverseVisible(o => { if (!o.isMesh) return; const g = o.geometry, n = (g.index ? g.index.count : g.attributes.position.count) / 3 * (o.isInstancedMesh ? o.count : 1); const k = o.isInstancedMesh ? (W.bins.some(b => b.userData.hi.includes(o)) ? 'treeHi' : W.bins.some(b => b.userData.lo.includes(o)) ? 'treeLo' : W.bins.some(b => b.userData.und.includes(o)) ? 'und' : W.crowd.some(z => z.ims.includes(o)) ? 'crowd' : 'inst') : W.terr.includes(o) ? 'terr' : (W.road || []).includes(o) ? 'road' : 'other'; add(k, Math.round(n)); }); return out; };
 window.__orthoOn = () => { window.__ortho = new THREE.OrthographicCamera(-1.3, 1.3, 1.3625, -0.1, 0.1, 20); };
 window.__fl = p => flames(p);
