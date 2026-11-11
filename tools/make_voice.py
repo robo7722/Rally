@@ -17,12 +17,13 @@ DIST = {50: "fünfzig", 100: "hundert", 150: "hundertfünfzig", 200: "zweihunder
 # Wörter, die mitten im Satz und am Ende vorkommen
 BOTH = {"hn": "Haarnadel", "lang": "lang", "zz": "zieht zu", "of": "öffnet", "ns": "nicht schneiden",
         "zs": "Zuschauer auf der Strecke", "leicht": "leicht", "mittel": "mittel", "eng": "eng", "neunzig": "neunzig",
-        "kuppe": "Kuppe", "sprung": "Sprung", "eis": "Eis"}
+        "sprung": "Sprung", "eis": "Eis"}
 for i, n in enumerate(NUM, 1):
     BOTH[f"l{i}"] = f"Links {n}"; BOTH[f"r{i}"] = f"Rechts {n}"
     BOTH[f"il{i}"] = f"in Links {n}"; BOTH[f"ir{i}"] = f"in Rechts {n}"   # "in" gleich mitgesprochen: fließt natürlicher
 # nur am Satzende bzw. als eigener Satz
-END = {"lg": "lange Gerade.", "ach": "Achtung!", "in": "in", "go": "Los geht's!", "ziel": "Ziel! Gut gemacht.", "ready": "Beifahrer bereit."}
+# "Kuppe" nur allein gesprochen: am Satzanfang ("Kuppe, rechts vier") spricht die Stimme es falsch aus
+END = {"kuppe": "Kuppe.", "lg": "lange Gerade.", "ach": "Achtung!", "in": "in", "go": "Los geht's!", "ziel": "Ziel! Gut gemacht.", "ready": "Beifahrer bereit."}
 for d, w in DIST.items():
     END[f"d{d}"] = w + "."
 
