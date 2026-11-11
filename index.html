@@ -670,7 +670,7 @@ body.pad #touch{display:none!important}
 
 <div id="loading"><div class="logo"><span class="a" style="font-size:60px">RALLY</span><span class="b" style="font-size:36px">RACING</span></div><div id="loadBar"><i></i></div><div id="loadTxt">Lade …</div></div>
 <div id="rotate"><div style="font-size:60px">⟳</div>Bitte das Handy quer halten</div>
-<div class="ver" id="ver">Rally Racing v14.9</div>
+<div class="ver" id="ver">Rally Racing v14.10</div>
 
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
 <script type="module">
@@ -1571,6 +1571,8 @@ const World = (() => {
     return mat;
   }
   const addDetail = (mat, d, s, a) => groundMat(mat, d, s, a);
+  // Entfernungen fürs weiche Einblenden: Bäume wechseln zwischen LOD0 und LOD1 vom Nah- aufs Fernmodell, Unterholz verschwindet zwischen UND0 und UND1
+  const LOD0 = 180, LOD1 = 225, UND0 = 110, UND1 = 155;
 
   function build(T, notes, scene, opt, progress) {
     const TH = opt.theme || THEMES.ce, R = Track.mulberry(9001 + (opt.seed || 0));
@@ -1624,6 +1626,27 @@ const World = (() => {
     const acBarkM = VC(new THREE.MeshLambertMaterial({ map: TEX.bark('acacia') }));
     // Laub lässt etwas Licht durch: auch im Gegenlicht nicht schwarz
     const FOL = {}; const fol = (k, c = 0xffffff) => { if (FOL[k + c]) return FOL[k + c]; const t = TEX.foliage(k); return FOL[k + c] = VC(new THREE.MeshLambertMaterial({ map: t, color: c, emissive: opt.night ? 0x050505 : 0x3a3a3a, emissiveMap: t })); };
+    // Überblenden Nah-/Fernmodell: im Übergangsbereich zeichnen beide Modelle, jedes nur einen Teil der Bildpunkte
+    // (feines Raster, das sich mit der Entfernung verschiebt). So wechselt kein ganzer Waldabschnitt auf einen Schlag.
+    const LODM = new Map();
+    const lodMat = (m, lo) => {
+      const key = m.uuid + (lo ? 'L' : 'H'); if (LODM.has(key)) return LODM.get(key);
+      const c = m.clone();
+      c.onBeforeCompile = sh => {
+        sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nvarying float vLD;').replace('#include <project_vertex>', `#include <project_vertex>
+          vLD = length(mvPosition.xyz);
+          #ifdef USE_INSTANCING
+          // Bäume, die sicher ganz auf der anderen Seite des Übergangs stehen, gar nicht erst rastern
+          { float dI = length((modelViewMatrix * vec4(instanceMatrix[3].xyz, 1.0)).xyz); if (dI ${lo ? '< ' + (LOD0 - 25).toFixed(1) : '> ' + (LOD1 + 25).toFixed(1)}) gl_Position = vec4(2.0, 2.0, 2.0, 1.0); }
+          #endif`);
+        sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nvarying float vLD;')
+          .replace('#include <clipping_planes_fragment>', `#include <clipping_planes_fragment>
+          { float dn = fract(52.9829189 * fract(dot(gl_FragCoord.xy, vec2(0.06711056, 0.00583715))));
+            if (vLD ${lo ? '<=' : '>'} ${LOD0.toFixed(1)} + dn * ${(LOD1 - LOD0).toFixed(1)}) discard; }`);
+      };
+      c.customProgramCacheKey = () => 'lod' + (lo ? 'L' : 'H');
+      LODM.set(key, c); return c;
+    };
     const G = {};
     // weiche Beleuchtung: Normalen zeigen vom Kronenmittelpunkt nach außen (statt harter Facetten)
     const softN = (g, cy, sy = 0.7) => { const p = g.attributes.position, n = g.attributes.normal;
@@ -1885,9 +1908,9 @@ const World = (() => {
           const sl = trans(d[0], d[1] + tp.can[1] * d[4] * 0.8, d[2], L.x, Ly, L.z, 2.0), f = 0.62 + 0.38 * sl;
           Cl.setRGB(d[7] * (1 + d[8]) * f, d[7] * f, d[7] * (1 - d[8]) * f); im.setColorAt(k, Cl); });
         im.castShadow = false; im.receiveShadow = false; im.userData.tree = true;
-        im.computeBoundingSphere(); grp.add(im); grp.userData.hi.push(im);
+        im.computeBoundingSphere(); grp.add(im); grp.userData.hi.push(im); im.userData.pm = tp.mats; im.userData.fm = tp.mats.map(m => lodMat(m, false));
         // Fern-Version teilt sich Positionen und Farben mit der Nah-Version
-        const lo = new THREE.InstancedMesh(tp.geoL, tp.mats, Ld.length); lo.instanceMatrix = im.instanceMatrix; lo.instanceColor = im.instanceColor; lo.boundingSphere = im.boundingSphere; lo.visible = false; grp.add(lo); grp.userData.lo.push(lo);
+        const lo = new THREE.InstancedMesh(tp.geoL, tp.mats, Ld.length); lo.instanceMatrix = im.instanceMatrix; lo.instanceColor = im.instanceColor; lo.boundingSphere = im.boundingSphere; lo.visible = false; grp.add(lo); grp.userData.lo.push(lo); lo.userData.pm = tp.mats; lo.userData.fm = tp.mats.map(m => lodMat(m, true));
         if (!band) { grp.remove(im); grp.userData.hi.pop(); grp.userData.lo.pop(); grp.userData.far = grp.userData.far || []; grp.userData.far.push(lo); lo.visible = true; }
         }
       });
@@ -1899,7 +1922,12 @@ const World = (() => {
     const cardGeo = (() => { const a = new THREE.PlaneGeometry(1, 1).translate(0, 0.5, 0), b = a.clone().rotateY(Math.PI / 2), c = a.clone().rotateY(Math.PI / 4); const g = merge([[a, 0], [b, 0], [c, 0]]); const n = g.attributes.normal; for (let i = 0; i < n.count; i++) n.setXYZ(i, 0, 1, 0); return g; })();   // Normalen nach oben: Gras wird wie der Boden beleuchtet (kein schwarzes Gegenlicht)
     // Gras/Büsche: beidseitig, aber Beleuchtung immer von oben (Rückseite nicht schwarz) + etwas Durchleuchtung
     const NFB = THREE.ShaderChunk.normal_fragment_begin.replace('normal *= faceDirection;', '');
-    const card = (tex) => { const m = new THREE.MeshLambertMaterial({ map: tex, alphaTest: 0.45, side: THREE.DoubleSide, emissive: opt.night ? 0x060606 : 0x444444, emissiveMap: tex }); m.onBeforeCompile = sh => { sh.fragmentShader = sh.fragmentShader.replace('#include <normal_fragment_begin>', NFB); }; m.customProgramCacheKey = () => 'card'; return m; };
+    const card = (tex) => { const m = new THREE.MeshLambertMaterial({ map: tex, alphaTest: 0.45, side: THREE.DoubleSide, emissive: opt.night ? 0x060606 : 0x444444, emissiveMap: tex }); m.onBeforeCompile = sh => { sh.fragmentShader = sh.fragmentShader.replace('#include <normal_fragment_begin>', NFB);
+      // Einblenden: jedes Büschel schrumpft zwischen UND0 und UND1 Metern Entfernung auf seinen Fußpunkt (kein Aufploppen ganzer Abschnitte)
+      sh.vertexShader = sh.vertexShader.replace('#include <begin_vertex>', `#include <begin_vertex>
+        #ifdef USE_INSTANCING
+        { vec3 ip = (modelMatrix * vec4(instanceMatrix[3].xyz, 1.0)).xyz; transformed *= 1.0 - smoothstep(${UND0.toFixed(1)}, ${UND1.toFixed(1)}, distance(ip.xz, cameraPosition.xz)); }
+        #endif`); }; m.customProgramCacheKey = () => 'card2'; return m; };
     const UND = {
       autumn: [[card(TEX.fern('autumn')), 1.6, 3.5, 22, 1.4, [1.0, 2.0]], [card(TEX.grass('green')), 0.4, 0.5, 3.2, 1.8, [0.5, 0.9]]],
       summer: [[card(TEX.fern('summer')), 1.6, 3.5, 22, 1.2, [0.9, 1.8]], [card(TEX.grass('green')), 0.4, 0.5, 3.2, 2.2, [0.5, 1.0]]],
@@ -2200,7 +2228,7 @@ const World = (() => {
     progress(0.97, 'Fertig');
     return W;
   }
-  return { build, addDetail, patchLit, LIT_DIR };
+  return { build, addDetail, patchLit, LIT_DIR, LOD0, LOD1, UND1 };
 })();
 
 /* ======================= Spiel: Kern ======================= */
@@ -2208,7 +2236,7 @@ const $ = s => document.querySelector(s);
 const $$ = s => document.querySelectorAll(s);
 const clamp = (x, a, b) => x < a ? a : x > b ? b : x;
 const lerp = (a, b, t) => a + (b - a) * t;
-const VERSION = 'v14.9';
+const VERSION = 'v14.10';
 const isTouch = matchMedia('(pointer:coarse)').matches || 'ontouchstart' in window;
 if (isTouch) document.body.classList.add('istouch');
 
@@ -2228,7 +2256,8 @@ let TH = THEMES[STG.theme];
 const fmt = (t) => { if (t == null || !isFinite(t)) return '--:--.--'; const m = Math.floor(t / 60), s = t - m * 60; return String(m).padStart(2, '0') + ':' + s.toFixed(2).padStart(5, '0'); };
 const fmtD = d => (d >= 0 ? '+' : '−') + Math.abs(d).toFixed(2);
 const setLoad = (p, t) => { $('#loadBar i').style.width = (p * 100) + '%'; if (t) $('#loadTxt').textContent = t; };
-const frame = () => new Promise(r => requestAnimationFrame(() => r()));
+// Ein Bild abwarten (Ladebalken zeichnen lassen); im Hintergrund zeichnet der Browser nicht, dann nach kurzer Zeit trotzdem weiterladen
+const frame = () => new Promise(r => { let done = false; const f = () => { if (!done) { done = true; r(); } }; requestAnimationFrame(f); setTimeout(f, 150); });
 
 // ---------- Renderer ----------
 const canvas = $('#gl');
@@ -3969,8 +3998,17 @@ function render(dt) {
   // Wald: nah detailliert, fern vereinfacht; Unterholz nur in der Nähe
   for (const b of W.bins) {
     const c = b.userData.c, d2 = (c.x - camera.position.x) ** 2 + (c.z - camera.position.z) ** 2, vis = d2 < vd; b.visible = vis; if (!vis) continue;
-    const dn = Math.sqrt(d2) - 80, near = dn < 200, und = dn < 140;   // ab der nächsten Kante des Abschnitts gemessen
-    for (const m of b.userData.hi) m.visible = near; for (const m of b.userData.lo) m.visible = !near; for (const m of b.userData.und) m.visible = und;
+    // Bäume: ganz nah nur das Nahmodell, ganz fern nur das Fernmodell (beide mit dem normalen Material);
+    // nur Gruppen, die im Übergangsbereich liegen, zeichnen beide Modelle mit dem Überblend-Material
+    const H = b.userData.hi, Lo = b.userData.lo;
+    for (let k = 0; k < H.length; k++) {
+      const hi = H[k], lo = Lo[k], bs = hi.boundingSphere, dS = camera.position.distanceTo(bs.center);
+      if (dS + bs.radius < World.LOD0) { hi.visible = true; lo.visible = false; if (hi.material !== hi.userData.pm) hi.material = hi.userData.pm; }
+      else if (dS - bs.radius > World.LOD1) { hi.visible = false; lo.visible = true; if (lo.material !== lo.userData.pm) lo.material = lo.userData.pm; }
+      else { hi.visible = lo.visible = true; if (hi.material !== hi.userData.fm) hi.material = hi.userData.fm; if (lo.material !== lo.userData.fm) lo.material = lo.userData.fm; }
+    }
+    // Unterholz: wird im Shader mit der Entfernung eingeblendet, hier nur Gruppen weglassen, die ganz außerhalb liegen
+    for (const m of b.userData.und) m.visible = camera.position.distanceTo(m.boundingSphere.center) - m.boundingSphere.radius < World.UND1;
   }
   // Straße: fern mit weniger Reihen
   if (W.road) for (const m of W.road) { const c = m.userData.c, far = Math.sqrt((c.x - camera.position.x) ** 2 + (c.z - camera.position.z) ** 2) - 115 > 280; m.visible = !far; m.userData.lo.visible = far; }
@@ -4010,7 +4048,8 @@ function prewarm() {
   const st = [];
   scene.traverse(o => { st.push([o, o.visible, o.frustumCulled]); o.visible = true; o.frustumCulled = false; });
   const rt = new THREE.WebGLRenderTarget(8, 8, { type: THREE.HalfFloatType }), sa = renderer.shadowMap.autoUpdate;
-  try { renderer.compile(scene, camera); renderer.setRenderTarget(rt); renderer.render(scene, camera); } catch (e) { console.warn(e); }
+  const lodSet = k => { for (const b of W.bins) for (const m of [...b.userData.hi, ...b.userData.lo]) m.material = m.userData[k]; };
+  try { lodSet('fm'); renderer.compile(scene, camera); renderer.setRenderTarget(rt); renderer.render(scene, camera); lodSet('pm'); renderer.compile(scene, camera); renderer.render(scene, camera); } catch (e) { console.warn(e); }
   renderer.setRenderTarget(null); rt.dispose(); renderer.shadowMap.autoUpdate = sa; renderer.shadowMap.needsUpdate = true;
   for (const [o, v, f] of st) { o.visible = v; o.frustumCulled = f; }
   for (const T2 of TEX_ALL()) renderer.initTexture(T2);
