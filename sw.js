@@ -1,5 +1,5 @@
 // Rally Racing – Offline-Speicher. Bei jedem Update die Versionsnummer erhöhen.
-const CACHE = 'rally-racing-v14-10';
+const CACHE = 'rally-racing-v14-11';
 const CARS = ['audi', 'lancer', 'subaru', 'celica', 'bmw', 'fiat', 'r5', 'delta', 'escort', 'rs200', 'p959', 's4', 'p205', 'stratos', 'alpine', 'fulvia', 'mini'];
 // Beifahrer-Stimme (Jonas), kurze Schnipsel
 const VOICE = ['ach', 'd100', 'd150', 'd200', 'd250', 'd300', 'd350', 'd400', 'd50', 'eis', 'eis_m', 'eng', 'eng_m', 'go', 'hn', 'hn_m', 'il1', 'il1_m', 'il2', 'il2_m', 'il3', 'il3_m', 'il4', 'il4_m', 'il5', 'il5_m', 'il6', 'il6_m', 'in', 'ir1', 'ir1_m', 'ir2', 'ir2_m', 'ir3', 'ir3_m', 'ir4', 'ir4_m', 'ir5', 'ir5_m', 'ir6', 'ir6_m', 'kuppe', 'l1', 'l1_m', 'l2', 'l2_m', 'l3', 'l3_m', 'l4', 'l4_m', 'l5', 'l5_m', 'l6', 'l6_m', 'lang', 'lang_m', 'leicht', 'leicht_m', 'lg', 'mittel', 'mittel_m', 'neunzig', 'neunzig_m', 'ns', 'ns_m', 'of', 'of_m', 'r1', 'r1_m', 'r2', 'r2_m', 'r3', 'r3_m', 'r4', 'r4_m', 'r5', 'r5_m', 'r6', 'r6_m', 'ready', 'sprung', 'sprung_m', 'ziel', 'zs', 'zs_m', 'zz', 'zz_m'];
