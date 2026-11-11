@@ -670,7 +670,7 @@ body.pad #touch{display:none!important}
 
 <div id="loading"><div class="logo"><span class="a" style="font-size:60px">RALLY</span><span class="b" style="font-size:36px">RACING</span></div><div id="loadBar"><i></i></div><div id="loadTxt">Lade …</div></div>
 <div id="rotate"><div style="font-size:60px">⟳</div>Bitte das Handy quer halten</div>
-<div class="ver" id="ver">Rally Racing v14.8</div>
+<div class="ver" id="ver">Rally Racing v14.9</div>
 
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
 <script type="module">
@@ -2208,7 +2208,7 @@ const $ = s => document.querySelector(s);
 const $$ = s => document.querySelectorAll(s);
 const clamp = (x, a, b) => x < a ? a : x > b ? b : x;
 const lerp = (a, b, t) => a + (b - a) * t;
-const VERSION = 'v14.8';
+const VERSION = 'v14.9';
 const isTouch = matchMedia('(pointer:coarse)').matches || 'ontouchstart' in window;
 if (isTouch) document.body.classList.add('istouch');
 
@@ -3144,7 +3144,7 @@ function pickVoice() {
   return vs.find(v => /de(-|_)DE/i.test(v.lang) && /google/i.test(v.name)) || vs[0];
 }
 if ('speechSynthesis' in window) speechSynthesis.onvoiceschanged = () => { CP.voice = pickVoice(); };
-// Aufgenommene Beifahrer-Stimme (Conrad): kurze Schnipsel in voice/, werden zu einer Ansage aneinandergereiht.
+// Aufgenommene Beifahrer-Stimme (Jonas): kurze Schnipsel in voice/, werden zu einer Ansage aneinandergereiht.
 // Die meisten Schnipsel liegen in zwei Betonungen vor: <k>_m.mp3 für mitten im Satz (Stimme bleibt oben) und <k>.mp3 fürs Satzende (Stimme senkt sich).
 // Kommt ein Wort vor, für das es keinen Schnipsel gibt, spricht die Gerätestimme die ganze Ansage.
 const VOX_MAP = { 'achtung': 'ach', 'haarnadel': 'hn', 'lang': 'lang', 'zieht zu': 'zz', 'öffnet': 'of', 'nicht schneiden': 'ns', 'in': 'in', 'lange gerade': 'lg',
@@ -4620,7 +4620,7 @@ function renderSettings() {
     <span>Fahrhilfe (Gegenlenken)</span>${seg('aid', [[0, 'Aus'], [0.35, 'Leicht'], [0.7, 'Stark']])}
     <span>Kamera</span>${seg('cam', CAMS.map((c, i) => [i, ['Hinten', 'Weit', 'Cockpit', 'Haube', 'Stoßst.'][i]]))}
     <h3>BEIFAHRER</h3><span>Ansagen (Stimme)</span>${seg('voice', [[true, 'An'], [false, 'Aus']])}
-    <span>Stimme</span>${seg('voiceG', [['m', 'Conrad (Mann)'], ['w', 'Gerätestimme']])}
+    <span>Stimme</span>${seg('voiceG', [['m', 'Jonas (Mann)'], ['w', 'Gerätestimme']])}
     ${vs.length > 1 && S.voiceG === 'w' ? `<span>Stimme des Geräts</span><div class="seg" style="flex-wrap:wrap" id="vList">${['', ...vs.map(v => v.name)].slice(0, 7).map(n => `<button data-vn="${n}" class="${(S.voiceName || '') === n ? 'on' : ''}">${n ? n.replace(/^Google\s*/, '').slice(0, 16) : 'Automatisch'}</button>`).join('')}</div>` : ''}
     <span>Lautstärke Beifahrer</span>${rng('volVoice', 0, 1, 0.05)}
     <h3>TON &amp; MUSIK</h3><span>Musik</span>${rng('volMusic', 0, 1, 0.05)}

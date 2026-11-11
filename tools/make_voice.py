@@ -1,4 +1,4 @@
-# Erzeugt die Beifahrer-Schnipsel in voice/ (edge-tts, Microsoft Neural-Stimme de-DE-ConradNeural).
+# Erzeugt die Beifahrer-Schnipsel in voice/ (edge-tts, Microsoft Neural-Stimme de-AT-JonasNeural).
 # Je Ansage zwei Betonungen:
 #   <key>.mp3    = Satzende (Stimme senkt sich): das Wort allein mit Punkt gesprochen
 #   <key>_m.mp3  = Satzmitte (Stimme bleibt oben): aus einem ganzen Satz "<Wort>, rechts vier." herausgeschnitten,
@@ -8,8 +8,8 @@
 import array, asyncio, os, subprocess, sys
 import edge_tts, imageio_ffmpeg
 
-VOICE = "de-DE-ConradNeural"
-RATE = "+8%"
+VOICE = "de-AT-JonasNeural"
+RATE = "+0%"
 SR = 24000
 FF = imageio_ffmpeg.get_ffmpeg_exe()
 NUM = ["eins", "zwei", "drei", "vier", "fünf", "sechs"]
