@@ -413,6 +413,13 @@ body.pad #touch{display:none!important}
 #pause .nv{padding:7px 12px}#pause .nv>i{width:34px;height:34px}
 .nv.hi .nt small{color:#4a3800}
 @media (max-height:520px){#pause .mfoot{display:none}}
+/* Pausenmenü passt immer ganz auf den Bildschirm (kein Scrollen): die Knöpfe teilen sich die verfügbare Höhe */
+#pause .pside{overflow:hidden;box-sizing:border-box;padding-bottom:max(8px,env(safe-area-inset-bottom))}
+#pause .ph{flex:none}
+#pause .mnav{flex:1 1 auto;min-height:0;gap:clamp(4px,1.4vh,10px)}
+#pause .nv{flex:1 1 0;min-height:0;max-height:58px;padding-top:0;padding-bottom:0}
+#pause .nv>i{height:min(34px,calc(100% - 8px));width:auto;aspect-ratio:1}
+@media (max-height:420px){#pause .pside{gap:6px;padding-top:max(8px,env(safe-area-inset-top))}.pside .ph span:not(.stripe){font-size:24px}.pside .ph .stripe{margin-top:4px}#pause .nv .nt b{font-size:14px}#pause .nv .nt small{font-size:10.5px;line-height:1.1}}
 
 /* ===== Einheitliche Kopfzeile: Zurück-Knopf und Titel überall an exakt derselben Stelle ===== */
 :root{--hdT:max(12px,env(safe-area-inset-top));--hdL:max(18px,env(safe-area-inset-left));--hdH:clamp(64px,15vh,92px)}
@@ -670,7 +677,7 @@ body.pad #touch{display:none!important}
 
 <div id="loading"><div class="logo"><span class="a" style="font-size:60px">RALLY</span><span class="b" style="font-size:36px">RACING</span></div><div id="loadBar"><i></i></div><div id="loadTxt">Lade …</div></div>
 <div id="rotate"><div style="font-size:60px">⟳</div>Bitte das Handy quer halten</div>
-<div class="ver" id="ver">Rally Racing v14.11</div>
+<div class="ver" id="ver">Rally Racing v14.12</div>
 
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
 <script type="module">
@@ -2215,7 +2222,7 @@ const $ = s => document.querySelector(s);
 const $$ = s => document.querySelectorAll(s);
 const clamp = (x, a, b) => x < a ? a : x > b ? b : x;
 const lerp = (a, b, t) => a + (b - a) * t;
-const VERSION = 'v14.11';
+const VERSION = 'v14.12';
 const isTouch = matchMedia('(pointer:coarse)').matches || 'ontouchstart' in window;
 if (isTouch) document.body.classList.add('istouch');
 
@@ -2482,11 +2489,14 @@ function dynRes(dt) {
   let tgt = S.fps === 30 ? 30 : 60;
   // Probe: hat die letzte Absenkung nichts gebracht, begrenzt etwas anderes die Bildrate (Display mit 45/50 Hz, Energiesparen).
   // Dann wieder die scharfe Auflösung nehmen und diese Bildrate als Ziel merken, statt das Bild grundlos unscharf zu machen.
-  if (DYN.probe) { const b = DYN.probe; DYN.probe = 0; if (fps < b.fps * 1.06) { DYN.cap = Math.max(fps, b.fps); resScale = b.res; resize(); DYN.cool = 4; return; } }
+  if (DYN.probe) { const b = DYN.probe; DYN.probe = 0; if (fps < b.fps * 1.06) { DYN.cap = Math.max(fps, b.fps); resScale = DYN.ceil = b.res; resize(); DYN.cool = 4; return; } }
   if (DYN.cap) tgt = Math.min(tgt, DYN.cap);
-  // Jede Änderung legt die Bildpuffer neu an (kurzer Ruckler): daher selten und ohne Hin-und-her-Pendeln
-  if (fps < tgt * 0.8 && resScale > 0.62) { ns = Math.max(0.62, resScale - 0.1); DYN.noUp = 25; DYN.probe = { fps, res: resScale }; }
-  else if (fps > tgt * 0.97 && resScale < 1 && !(DYN.noUp > 0)) ns = Math.min(1, resScale + 0.05);
+  // Jede Änderung legt die Bildpuffer neu an (kurzer Ruckler). Früher wurde alle ~25 s wieder hochgeschaltet und kurz darauf erneut gesenkt:
+  // regelmäßige Ruckler im Rennen. Jetzt gilt: wurde einmal gesenkt, ist das die Obergrenze (DYN.ceil) für den Rest der Sitzung.
+  // Gesenkt wird nur im Rennen und erst, wenn die Bildrate zwei Messfenster hintereinander zu niedrig war (ein einzelner Hänger zählt nicht)
+  DYN.low = state === 'race' && fps < tgt * 0.8 ? (DYN.low || 0) + 1 : 0;
+  if (DYN.low >= 2 && resScale > 0.62) { DYN.low = 0; ns = Math.max(0.62, resScale - 0.1); DYN.ceil = ns; DYN.probe = { fps, res: resScale }; }
+  else if (fps > tgt * 0.97 && resScale + 0.049 < (DYN.ceil || 1) && state !== 'race') ns = Math.min(DYN.ceil || 1, resScale + 0.05);
   if (ns !== resScale) { resScale = ns; resize(); DYN.cool = 4; }
 }
 
@@ -3822,6 +3832,9 @@ async function setupWreck() {
   const tri = new THREE.Mesh(new THREE.RingGeometry(0.2, 0.32, 3), new THREE.MeshBasicMaterial({ color: 0xff2a10, side: THREE.DoubleSide })); const ti = Math.max(T.START, i - 25), tl = side * (T.w[ti] + 0.8);
   tri.position.set(T.x[ti] + T.lx[ti] * tl, Track.roadSurf(T, ti, side * T.w[ti]) + 0.28, T.z[ti] + T.lz[ti] * tl); tri.rotation.set(0, T.h[ti] + Math.PI, Math.PI / 2); WG.add(tri);
   WRECK = { obj: o, s, hood, col, bin, tri, t: 0 };
+  // Shader übersetzen und Texturen hochladen, solange noch der Countdown läuft
+  try { const fc = []; o.root.traverse(m => { if (m.isMesh) { fc.push([m, m.frustumCulled]); m.frustumCulled = false; const ms = Array.isArray(m.material) ? m.material : [m.material]; for (const mt of ms) for (const k of ['map', 'normalMap', 'alphaMap', 'emissiveMap', 'roughnessMap']) if (mt[k]) renderer.initTexture(mt[k]); } });
+    renderer.compile(scene, camera); for (const [m, f] of fc) m.frustumCulled = f; } catch (e) { }
 }
 function updWreck(dt) {
   if (!WRECK || !car || Math.abs(WRECK.s - car.q.s) > 380) return;
@@ -4024,6 +4037,7 @@ function prewarm() {
   renderer.setRenderTarget(null); rt.dispose(); renderer.shadowMap.autoUpdate = sa; renderer.shadowMap.needsUpdate = true;
   for (const [o, v, f] of st) { o.visible = v; o.frustumCulled = f; }
   for (const T2 of TEX_ALL()) renderer.initTexture(T2);
+  if (composer && RAYS) { try { const gu = gradePass.uniforms, r0 = gu.uRays.value; gu.uRays.value = 1; RAYS.render(renderer, composer.writeBuffer, composer.readBuffer); gu.uRays.value = r0; renderer.setRenderTarget(null); } catch (e) { console.warn(e); } }
 }
 function TEX_ALL() { const s2 = new Set(); scene.traverse(o => { const ms = o.material ? (Array.isArray(o.material) ? o.material : [o.material]) : []; for (const m of ms) for (const k of ['map', 'normalMap', 'alphaMap', 'emissiveMap', 'roughnessMap']) if (m[k]) s2.add(m[k]); }); return s2; }
 // ---------- Showroom (eigene Szene für die Autowahl) ----------
