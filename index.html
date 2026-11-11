@@ -670,7 +670,7 @@ body.pad #touch{display:none!important}
 
 <div id="loading"><div class="logo"><span class="a" style="font-size:60px">RALLY</span><span class="b" style="font-size:36px">RACING</span></div><div id="loadBar"><i></i></div><div id="loadTxt">Lade …</div></div>
 <div id="rotate"><div style="font-size:60px">⟳</div>Bitte das Handy quer halten</div>
-<div class="ver" id="ver">Rally Racing v14.4</div>
+<div class="ver" id="ver">Rally Racing v14.5</div>
 
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
 <script type="module">
@@ -2208,7 +2208,7 @@ const $ = s => document.querySelector(s);
 const $$ = s => document.querySelectorAll(s);
 const clamp = (x, a, b) => x < a ? a : x > b ? b : x;
 const lerp = (a, b, t) => a + (b - a) * t;
-const VERSION = 'v14.4';
+const VERSION = 'v14.5';
 const isTouch = matchMedia('(pointer:coarse)').matches || 'ontouchstart' in window;
 if (isTouch) document.body.classList.add('istouch');
 
@@ -2471,9 +2471,13 @@ function dynRes(dt) {
   const fps = DYN.n / DYN.acc; DYN.t = 0; DYN.n = 0; DYN.acc = 0;
   if (DYN.cool > 0) return;
   let ns = resScale;
-  const tgt = S.fps === 30 ? 30 : 60;
+  let tgt = S.fps === 30 ? 30 : 60;
+  // Probe: hat die letzte Absenkung nichts gebracht, begrenzt etwas anderes die Bildrate (Display mit 45/50 Hz, Energiesparen).
+  // Dann wieder die scharfe Auflösung nehmen und diese Bildrate als Ziel merken, statt das Bild grundlos unscharf zu machen.
+  if (DYN.probe) { const b = DYN.probe; DYN.probe = 0; if (fps < b.fps * 1.06) { DYN.cap = Math.max(fps, b.fps); resScale = b.res; resize(); DYN.cool = 4; return; } }
+  if (DYN.cap) tgt = Math.min(tgt, DYN.cap);
   // Jede Änderung legt die Bildpuffer neu an (kurzer Ruckler): daher selten und ohne Hin-und-her-Pendeln
-  if (fps < tgt * 0.8 && resScale > 0.62) { ns = Math.max(0.62, resScale - 0.1); DYN.noUp = 25; }
+  if (fps < tgt * 0.8 && resScale > 0.62) { ns = Math.max(0.62, resScale - 0.1); DYN.noUp = 25; DYN.probe = { fps, res: resScale }; }
   else if (fps > tgt * 0.97 && resScale < 1 && !(DYN.noUp > 0)) ns = Math.min(1, resScale + 0.05);
   if (ns !== resScale) { resScale = ns; resize(); DYN.cool = 4; }
 }
@@ -2786,7 +2790,7 @@ function makeParticles(N, tex, additive) {
   return { N, pos, col, al, sz, g, m, pts, vel: new Float32Array(N * 3), life: new Float32Array(N), max: new Float32Array(N), grow: new Float32Array(N), grav: new Float32Array(N), a0: new Float32Array(N), drag: new Float32Array(N), head: 0, live: 0, hi: 0 };
 }
 function emit(P, x, y, z, vx, vy, vz, life, size, grow, r, g, b, a, grav, drag) {
-  const i = P.head; P.head = (P.head + 1) % P.N; P.live = P.N;
+  const i = P.head; P.head = (P.head + 1) % P.N; P.live = P.N; P.cd = true;
   P.pos[i * 3] = x; P.pos[i * 3 + 1] = y; P.pos[i * 3 + 2] = z; P.vel[i * 3] = vx; P.vel[i * 3 + 1] = vy; P.vel[i * 3 + 2] = vz;
   P.life[i] = life; P.max[i] = life; P.sz[i] = size; P.grow[i] = grow; P.col[i * 3] = r; P.col[i * 3 + 1] = g; P.col[i * 3 + 2] = b; P.a0[i] = a; P.grav[i] = grav; P.drag[i] = drag;
 }
@@ -2803,7 +2807,7 @@ function updParticles(P, dt) {
     const t = life[i] / max[i]; al[i] = a0[i] * Math.min(1, t * 2.5) * Math.min(1, (1 - t) * 12);
   }
   if (!alive) P.live = 0;
-  P.g.attributes.position.needsUpdate = true; P.g.attributes.aA.needsUpdate = true; P.g.attributes.aS.needsUpdate = true; P.g.attributes.aCol.needsUpdate = true;
+  P.g.attributes.position.needsUpdate = true; P.g.attributes.aA.needsUpdate = true; P.g.attributes.aS.needsUpdate = true; if (P.cd) { P.g.attributes.aCol.needsUpdate = true; P.cd = false; }
 }
 let DUST, MUD, FIRE;
 
@@ -2814,22 +2818,28 @@ const SKID = (() => {
   const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(pos, 3)); g.setAttribute('color', new THREE.BufferAttribute(col, 4)); g.setIndex(new THREE.BufferAttribute(idx, 1));
   const m = new THREE.MeshBasicMaterial({ color: 0x1e140a, vertexColors: true, transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -3, polygonOffsetUnits: -3, fog: true });
   const mesh = new THREE.Mesh(g, m); mesh.frustumCulled = false; mesh.renderOrder = 1; scene.add(mesh);
-  let head = 0, dirty = false; const last = [null, null, null, null];
+  let head = 0, dirty = false, full = true;
+  const last = [0, 1, 2, 3].map(() => ({ on: false, x: 0, y: 0, z: 0, nx: 0, nz: 0, a: 0 }));
+  const pA = g.attributes.position, cA = g.attributes.color, ranged = typeof pA.addUpdateRange === 'function';
   function add(w, x, y, z, nx, nz, a) {
     const L = last[w];
-    if (L && (x - L.x) ** 2 + (z - L.z) ** 2 < 0.36) return;
-    if (L && (x - L.x) ** 2 + (z - L.z) ** 2 < 9 && a > 0.02) {
-      const k = head; head = (head + 1) % MAX; const hw = 0.13;
-      const P = [L.x + L.nx * hw, L.y, L.z + L.nz * hw, L.x - L.nx * hw, L.y, L.z - L.nz * hw, x + nx * hw, y, z + nz * hw, x - nx * hw, y, z - nz * hw];
-      pos.set(P, k * 12);
-      for (let v = 0; v < 4; v++) col.set([1, 1, 1, v < 2 ? L.a : a], k * 16 + v * 4);
-      dirty = true;
+    if (L.on) {
+      const d2 = (x - L.x) ** 2 + (z - L.z) ** 2;
+      if (d2 < 0.36) return;
+      if (d2 < 9 && a > 0.02) {
+        const k = head; head = (head + 1) % MAX; const hw = 0.13; let o = k * 12;
+        pos[o] = L.x + L.nx * hw; pos[o + 1] = L.y; pos[o + 2] = L.z + L.nz * hw; pos[o + 3] = L.x - L.nx * hw; pos[o + 4] = L.y; pos[o + 5] = L.z - L.nz * hw;
+        pos[o + 6] = x + nx * hw; pos[o + 7] = y; pos[o + 8] = z + nz * hw; pos[o + 9] = x - nx * hw; pos[o + 10] = y; pos[o + 11] = z - nz * hw;
+        o = k * 16; for (let v = 0; v < 4; v++) { col[o + v * 4] = col[o + v * 4 + 1] = col[o + v * 4 + 2] = 1; col[o + v * 4 + 3] = v < 2 ? L.a : a; }
+        if (ranged && !full) { pA.addUpdateRange(k * 12, 12); cA.addUpdateRange(k * 16, 16); }
+        dirty = true;
+      }
     }
-    last[w] = { x, y, z, nx, nz, a };
+    L.on = true; L.x = x; L.y = y; L.z = z; L.nx = nx; L.nz = nz; L.a = a;
   }
-  function reset() { pos.fill(0); col.fill(0); for (let i = 0; i < 4; i++) last[i] = null; dirty = true; m.color.setHex(TH.skid || 0x1e140a); }
-  function cut(w) { last[w] = null; }
-  function update() { if (dirty) { g.attributes.position.needsUpdate = true; g.attributes.color.needsUpdate = true; dirty = false; } }
+  function reset() { pos.fill(0); col.fill(0); for (let i = 0; i < 4; i++) last[i].on = false; dirty = full = true; m.color.setHex(TH.skid || 0x1e140a); }
+  function cut(w) { last[w].on = false; }
+  function update() { if (dirty) { if (full && ranged) { pA.clearUpdateRanges(); cA.clearUpdateRanges(); } pA.needsUpdate = true; cA.needsUpdate = true; dirty = full = false; } }
   return { add, reset, update, cut };
 })();
 
@@ -3134,14 +3144,15 @@ function pickVoice() {
   return vs.find(v => /de(-|_)DE/i.test(v.lang) && /google/i.test(v.name)) || vs[0];
 }
 if ('speechSynthesis' in window) speechSynthesis.onvoiceschanged = () => { CP.voice = pickVoice(); };
-// Aufgenommene Beifahrer-Stimme (Conrad): kurze Schnipsel in voice/, werden zu einer Ansage aneinandergereiht.
+// Aufgenommene Beifahrer-Stimme (Florian): kurze Schnipsel in voice/, werden zu einer Ansage aneinandergereiht.
+// Jeder Schnipsel liegt in zwei Betonungen vor: <k>_m.mp3 für mitten im Satz (Stimme bleibt oben) und <k>.mp3 fürs Satzende (Stimme senkt sich).
 // Kommt ein Wort vor, für das es keinen Schnipsel gibt, spricht die Gerätestimme die ganze Ansage.
 const VOX_MAP = { 'achtung': 'ach', 'haarnadel': 'hn', 'lang': 'lang', 'zieht zu': 'zz', 'öffnet': 'of', 'nicht schneiden': 'ns', 'in': 'in', 'lange gerade': 'lg',
   'zuschauer auf der strecke': 'zs', 'leicht': 'leicht', 'mittel': 'mittel', 'eng': 'eng', 'neunzig': 'neunzig', 'kuppe': 'kuppe', 'sprung': 'sprung', 'eis': 'eis',
   'los gehts': 'go', 'ziel gut gemacht': 'ziel', 'beifahrer bereit': 'ready' };
 for (let i = 1; i <= 6; i++) { VOX_MAP['links ' + i] = 'l' + i; VOX_MAP['rechts ' + i] = 'r' + i; }
 for (let d = 50; d <= 400; d += 50) VOX_MAP[String(d)] = 'd' + d;
-const VOX = { buf: {}, loading: null, src: [], end: 0, g: null };
+const VOX = { buf: {}, loading: null, src: [], end: 0, g: null }, VOX_END = new Set(['ach', 'in', 'go', 'ziel', 'ready']);   // diese gibt es nur in einer Betonung
 function voxLoad() {
   if (VOX.loading || !AU.ctx) return VOX.loading;
   const ac = AU.ctx; VOX.g = ac.createGain();
@@ -3152,14 +3163,16 @@ function voxLoad() {
   const trim = b => { const d = b.getChannelData(0), th = 0.012; let pk = 0; for (let i = 0; i < d.length; i++) pk = Math.max(pk, Math.abs(d[i])); if (pk > 0.01) for (let c = 0; c < b.numberOfChannels; c++) { const x = b.getChannelData(c); for (let i = 0; i < x.length; i++) x[i] *= 0.95 / pk; }   // alle Schnipsel gleich laut
     let a = 0, e = d.length - 1; while (a < e && Math.abs(d[a]) < th) a++; while (e > a && Math.abs(d[e]) < th) e--;
     return { b, t0: Math.max(0, a / b.sampleRate - 0.015), dur: Math.min(b.duration, (e - a) / b.sampleRate + 0.06) }; };
-  VOX.loading = Promise.all([...new Set(Object.values(VOX_MAP))].map(k => fetch('voice/' + k + '.mp3').then(r => r.arrayBuffer()).then(a => ac.decodeAudioData(a)).then(b => { VOX.buf[k] = trim(b); }).catch(() => { })));
+  VOX.loading = Promise.all([...new Set(Object.values(VOX_MAP))].flatMap(k => VOX_END.has(k) ? [k] : [k, k + '_m']).map(k => fetch('voice/' + k + '.mp3').then(r => r.arrayBuffer()).then(a => ac.decodeAudioData(a)).then(b => { VOX.buf[k] = trim(b); }).catch(() => { })));
   return VOX.loading;
 }
 function voxKeys(txt) {
-  const w = txt.toLowerCase().replace(/['’]/g, '').replace(/[,.!?]+/g, ' ').trim().split(/\s+/), out = [];
+  const raw = txt.toLowerCase().replace(/['’]/g, '').trim().split(/\s+/), w = raw.map(t => t.replace(/[,.!?]+/g, '')), out = []; out.brk = [];
   for (let i = 0; i < w.length;) {
+    if (!w[i]) { i++; continue; }
     let k = null, n = 4; for (; n >= 1 && !k; n--) k = VOX_MAP[w.slice(i, i + n).join(' ')];
     if (!k || !VOX.buf[k]) return null; out.push(k); i += n + 1;
+    out.brk.push(/[,.!?]$/.test(raw[i - 1]));   // Satzzeichen danach: kurze Atempause
   }
   return out;
 }
@@ -3168,7 +3181,14 @@ function voxPlay(txt) {
   const keys = voxKeys(txt); if (!keys) return false;
   const ac = AU.ctx; VOX.g.gain.value = Math.min(1, S.volVoice);
   let t = Math.max(ac.currentTime + 0.03, VOX.end), last = null;
-  keys.forEach((k, i) => { const c = VOX.buf[k], src = ac.createBufferSource(); src.buffer = c.b; src.connect(VOX.g); src.start(t, c.t0, c.dur); t += c.dur + (i < keys.length - 1 ? 0.035 : 0); VOX.src.push(src); last = src; });
+  // Wie ein Mensch: nie zweimal exakt gleich (Tempo und Tonlage schwanken leicht), bei hohem Tempo etwas gehetzter,
+  // Wörter gehen ineinander über, nur an Kommas gibt es eine kurze Pause
+  const rate0 = 0.985 + Math.random() * 0.035 + (car && state === 'race' ? clamp(Math.abs(car.u) / 45, 0, 1) * 0.045 : 0);
+  keys.forEach((k, i) => {
+    const fin = i === keys.length - 1, c = (!fin && VOX.buf[k + '_m']) || VOX.buf[k], src = ac.createBufferSource(), r = rate0 * (0.992 + Math.random() * 0.016);
+    src.buffer = c.b; src.playbackRate.value = r; src.connect(VOX.g); src.start(t, c.t0, c.dur);
+    t += c.dur / r + (fin ? 0 : keys.brk[i] ? 0.05 + Math.random() * 0.05 : -0.035 + Math.random() * 0.02); VOX.src.push(src); last = src;
+  });
   VOX.end = t; DUCK.n++;
   last.onended = () => { DUCK.n = Math.max(0, DUCK.n - 1); if (ac.currentTime >= VOX.end - 0.01) VOX.src = []; };
   return true;
@@ -3184,7 +3204,8 @@ function say(txt, rate = 1.22) {
     const u = new SpeechSynthesisUtterance(txt); u.lang = 'de-DE'; if (!CP.voice) CP.voice = pickVoice(); if (CP.voice) u.voice = CP.voice;
     // keine erkennbar männliche Stimme vorhanden: tiefer sprechen lassen
     const isM = CP.voice && MALE.test(CP.voice.name + ' ' + CP.voice.voiceURI);
-    u.rate = S.voiceG === 'm' && !isM ? rate * 0.97 : rate; u.pitch = S.voiceG === 'm' ? (isM ? 0.92 : 0.7) : 0.95;   // ohne echte Männerstimme nur maßvoll tiefer, sonst klingt es künstlich u.volume = Math.min(1, S.volVoice);
+    u.rate = S.voiceG === 'm' && !isM ? rate * 0.97 : rate; u.pitch = S.voiceG === 'm' ? (isM ? 0.92 : 0.7) : 0.95;   // ohne echte Männerstimme nur maßvoll tiefer, sonst klingt es künstlich
+    u.volume = Math.min(1, S.volVoice);
     // Musik und Motor beim Sprechen leiser, damit man den Beifahrer gut versteht
     u.onstart = () => { DUCK.n++; }; u.onend = u.onerror = () => { DUCK.n = Math.max(0, DUCK.n - 1); };
     speechSynthesis.speak(u);
@@ -3473,7 +3494,6 @@ function setupHeadlights() {
   HL.L = []; HL.spr = []; HL.loc = [];
   HL.on = !!(STG && LIGHTS[STG.light] && LIGHTS[STG.light].night); if (!HL.on || !carObj) return;
   const A = carObj.info, xen = catOf(S.car).id === 'wrc', col = new THREE.Color(CARS[S.car].hlc || 0xffc888), z = (A.zmax || 2) - 0.12, hw = 0.56;
-  /* glowT entfällt */ const _unused = (() => { const c = TEX.cnv(64, 64), x = c.getContext('2d'), g = x.createRadialGradient(32, 32, 0, 32, 32, 32); g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(0.25, xen ? 'rgba(220,232,255,.7)' : 'rgba(255,220,160,.7)'); g.addColorStop(1, 'rgba(255,200,120,0)'); x.fillStyle = g; x.fillRect(0, 0, 64, 64); return new THREE.CanvasTexture(c); })();
   const sides = S.gfx === 'low' ? [0] : [-1, 1];
   for (const sd of sides) {
     const l = new THREE.SpotLight(col, (xen ? 560 : 480) * (sides.length === 1 ? 1.7 : 1), 165, 0.62, 0.7, 1.7);   // Reichweite wie echte Scheinwerfer: hell bis ~60 m, danach schnell dunkel
@@ -3958,7 +3978,9 @@ function render(dt) {
   // Gelände-Kacheln, die ganz im Nebel liegen, gar nicht erst zeichnen
   const td = (2.6 / scene.fog.density + 115) ** 2;
   for (const m of W.terr) { const c = m.userData.c; m.visible = (c.x - camera.position.x) ** 2 + (c.z - camera.position.z) ** 2 < td; }
-  for (const Z of W.crowd) { const vis = !car || Math.abs((Z.a + Z.b) / 2 - car.q.s) < 450; for (const im of Z.ims) im.visible = vis; }
+  for (const Z of W.crowd) { const vis = !car || Math.abs((Z.a + Z.b) / 2 - car.q.s) < 450; for (const im of Z.ims) im.visible = vis;
+    // Arme sind nur bei Zuschauern nahe am Auto ausgeklappt, die Fotoapparate ab ~200 m kleiner als ein Bildpunkt
+    if (vis && car) { const s0 = car.q.s; Z.ims[3].visible = Z.b > s0 - 100 && Z.a < s0 + 140; Z.ims[4].visible = Z.b > s0 - 220 && Z.a < s0 + 220; } }
   const lightC = DUST.m.uniforms.uLight.value; lightC.setRGB(0.95, 0.9, 0.82).multiplyScalar((0.7 + 0.3 * sunV) * (NIGHT ? 0.42 : 1)); MUD.m.uniforms.uLight.value.copy(lightC);
   renderer.info.autoReset = false; renderer.info.reset();
   if (composer) {
@@ -4597,7 +4619,7 @@ function renderSettings() {
     <span>Fahrhilfe (Gegenlenken)</span>${seg('aid', [[0, 'Aus'], [0.35, 'Leicht'], [0.7, 'Stark']])}
     <span>Kamera</span>${seg('cam', CAMS.map((c, i) => [i, ['Hinten', 'Weit', 'Cockpit', 'Haube', 'Stoßst.'][i]]))}
     <h3>BEIFAHRER</h3><span>Ansagen (Stimme)</span>${seg('voice', [[true, 'An'], [false, 'Aus']])}
-    <span>Stimme</span>${seg('voiceG', [['m', 'Conrad (Mann)'], ['w', 'Gerätestimme']])}
+    <span>Stimme</span>${seg('voiceG', [['m', 'Florian (Mann)'], ['w', 'Gerätestimme']])}
     ${vs.length > 1 && S.voiceG === 'w' ? `<span>Stimme des Geräts</span><div class="seg" style="flex-wrap:wrap" id="vList">${['', ...vs.map(v => v.name)].slice(0, 7).map(n => `<button data-vn="${n}" class="${(S.voiceName || '') === n ? 'on' : ''}">${n ? n.replace(/^Google\s*/, '').slice(0, 16) : 'Automatisch'}</button>`).join('')}</div>` : ''}
     <span>Lautstärke Beifahrer</span>${rng('volVoice', 0, 1, 0.05)}
     <h3>TON &amp; MUSIK</h3><span>Musik</span>${rng('volMusic', 0, 1, 0.05)}
@@ -4709,7 +4731,7 @@ window.__sel = o => Object.assign(SEL, o);
 window.__ch = () => CH;
 window.__resScale = v => { resScale = v; resize(); };
 window.__T = () => T; window.__W = () => W; window.THREE = THREE; window.DIRT = DIRT; window.__wr = () => WRECK; window.__camI = () => ({ cam: camera.position.toArray(), tp: car.tPitch, tr: car.tRoll, y: car.y, cp: camPitch, look: camLook.toArray() });
-window.__vox = t => voxKeys(t);
+window.__vox = t => voxKeys(t); window.__voxBuf = () => VOX.buf; window.__gfx = () => ({ renderer, composer, scene, camera, DYN });
 window.__post = () => composer ? { rays: RAYS.enabled, uRays: gradePass.uniforms.uRays.value, sunOn: gradePass.uniforms.uSunOn.value, sharp: gradePass.uniforms.uSharp.value, res: resScale } : null;
 window.__tris = () => { const out = {}; const add = (k, n) => out[k] = (out[k] || 0) + n; scene.traverseVisible(o => { if (!o.isMesh) return; const g = o.geometry, n = (g.index ? g.index.count : g.attributes.position.count) / 3 * (o.isInstancedMesh ? o.count : 1); const k = o.isInstancedMesh ? (W.bins.some(b => b.userData.hi.includes(o)) ? 'treeHi' : W.bins.some(b => b.userData.lo.includes(o)) ? 'treeLo' : W.bins.some(b => b.userData.und.includes(o)) ? 'und' : W.crowd.some(z => z.ims.includes(o)) ? 'crowd' : 'inst') : W.terr.includes(o) ? 'terr' : (W.road || []).includes(o) ? 'road' : 'other'; add(k, Math.round(n)); }); return out; };
 window.__orthoOn = () => { window.__ortho = new THREE.OrthographicCamera(-1.3, 1.3, 1.3625, -0.1, 0.1, 20); };
