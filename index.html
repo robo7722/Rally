@@ -677,7 +677,7 @@ body.pad #touch{display:none!important}
 
 <div id="loading"><div class="logo"><span class="a" style="font-size:60px">RALLY</span><span class="b" style="font-size:36px">RACING</span></div><div id="loadBar"><i></i></div><div id="loadTxt">Lade …</div></div>
 <div id="rotate"><div style="font-size:60px">⟳</div>Bitte das Handy quer halten</div>
-<div class="ver" id="ver">Rally Racing v14.12</div>
+<div class="ver" id="ver">Rally Racing v14.13</div>
 
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
 <script type="module">
@@ -2222,7 +2222,7 @@ const $ = s => document.querySelector(s);
 const $$ = s => document.querySelectorAll(s);
 const clamp = (x, a, b) => x < a ? a : x > b ? b : x;
 const lerp = (a, b, t) => a + (b - a) * t;
-const VERSION = 'v14.12';
+const VERSION = 'v14.13';
 const isTouch = matchMedia('(pointer:coarse)').matches || 'ontouchstart' in window;
 if (isTouch) document.body.classList.add('istouch');
 
@@ -4584,7 +4584,14 @@ $('#pSkip').onclick = () => { musicNext(); };
 $('#pMenu').onclick = () => { if (AU.ctx) AU.ctx.resume(); toMenu(); };
 $('#pSettings').onclick = () => openSettings('pause');
 $('#bPause').onclick = () => pauseGame(); $('#bCam').onclick = () => cycleCam(); $('#bReset').onclick = () => { if (state === 'race') resetCar(true); };
-document.addEventListener('visibilitychange', () => { if (document.hidden && (state === 'race' || state === 'count')) pauseGame(); });
+// App minimiert / Tab im Hintergrund: Rennen pausieren und allen Ton anhalten (Motor, Zuschauer, Ansagen), auch im Menü und nach dem Ziel
+function bgAudio() {
+  const hid = document.hidden;
+  if (hid && (state === 'race' || state === 'count')) pauseGame();
+  if (hid) { voxStop(); try { speechSynthesis.cancel(); } catch (e) { } }
+  if (AU.ctx) { if (hid) AU.ctx.suspend(); else if (state !== 'pause') AU.ctx.resume(); }
+}
+document.addEventListener('visibilitychange', bgAudio); addEventListener('pagehide', bgAudio);
 
 // ---------- Fahrerprofil ----------
 let afterProfile = null, profNat = null;
