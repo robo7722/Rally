@@ -670,7 +670,7 @@ body.pad #touch{display:none!important}
 
 <div id="loading"><div class="logo"><span class="a" style="font-size:60px">RALLY</span><span class="b" style="font-size:36px">RACING</span></div><div id="loadBar"><i></i></div><div id="loadTxt">Lade …</div></div>
 <div id="rotate"><div style="font-size:60px">⟳</div>Bitte das Handy quer halten</div>
-<div class="ver" id="ver">Rally Racing v14.5</div>
+<div class="ver" id="ver">Rally Racing v14.6</div>
 
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
 <script type="module">
@@ -2208,7 +2208,7 @@ const $ = s => document.querySelector(s);
 const $$ = s => document.querySelectorAll(s);
 const clamp = (x, a, b) => x < a ? a : x > b ? b : x;
 const lerp = (a, b, t) => a + (b - a) * t;
-const VERSION = 'v14.5';
+const VERSION = 'v14.6';
 const isTouch = matchMedia('(pointer:coarse)').matches || 'ontouchstart' in window;
 if (isTouch) document.body.classList.add('istouch');
 
@@ -3144,7 +3144,7 @@ function pickVoice() {
   return vs.find(v => /de(-|_)DE/i.test(v.lang) && /google/i.test(v.name)) || vs[0];
 }
 if ('speechSynthesis' in window) speechSynthesis.onvoiceschanged = () => { CP.voice = pickVoice(); };
-// Aufgenommene Beifahrer-Stimme (Florian): kurze Schnipsel in voice/, werden zu einer Ansage aneinandergereiht.
+// Aufgenommene Beifahrer-Stimme (Conrad): kurze Schnipsel in voice/, werden zu einer Ansage aneinandergereiht.
 // Jeder Schnipsel liegt in zwei Betonungen vor: <k>_m.mp3 für mitten im Satz (Stimme bleibt oben) und <k>.mp3 fürs Satzende (Stimme senkt sich).
 // Kommt ein Wort vor, für das es keinen Schnipsel gibt, spricht die Gerätestimme die ganze Ansage.
 const VOX_MAP = { 'achtung': 'ach', 'haarnadel': 'hn', 'lang': 'lang', 'zieht zu': 'zz', 'öffnet': 'of', 'nicht schneiden': 'ns', 'in': 'in', 'lange gerade': 'lg',
@@ -3153,6 +3153,7 @@ const VOX_MAP = { 'achtung': 'ach', 'haarnadel': 'hn', 'lang': 'lang', 'zieht zu
 for (let i = 1; i <= 6; i++) { VOX_MAP['links ' + i] = 'l' + i; VOX_MAP['rechts ' + i] = 'r' + i; }
 for (let d = 50; d <= 400; d += 50) VOX_MAP[String(d)] = 'd' + d;
 const VOX = { buf: {}, loading: null, src: [], end: 0, g: null }, VOX_END = new Set(['ach', 'in', 'go', 'ziel', 'ready']);   // diese gibt es nur in einer Betonung
+const VOX_MID = false;   // Satzmitte-Betonung (<k>_m.mp3): Conrad spricht sie nicht anders als das Satzende, daher aus
 function voxLoad() {
   if (VOX.loading || !AU.ctx) return VOX.loading;
   const ac = AU.ctx; VOX.g = ac.createGain();
@@ -3163,7 +3164,7 @@ function voxLoad() {
   const trim = b => { const d = b.getChannelData(0), th = 0.012; let pk = 0; for (let i = 0; i < d.length; i++) pk = Math.max(pk, Math.abs(d[i])); if (pk > 0.01) for (let c = 0; c < b.numberOfChannels; c++) { const x = b.getChannelData(c); for (let i = 0; i < x.length; i++) x[i] *= 0.95 / pk; }   // alle Schnipsel gleich laut
     let a = 0, e = d.length - 1; while (a < e && Math.abs(d[a]) < th) a++; while (e > a && Math.abs(d[e]) < th) e--;
     return { b, t0: Math.max(0, a / b.sampleRate - 0.015), dur: Math.min(b.duration, (e - a) / b.sampleRate + 0.06) }; };
-  VOX.loading = Promise.all([...new Set(Object.values(VOX_MAP))].flatMap(k => VOX_END.has(k) ? [k] : [k, k + '_m']).map(k => fetch('voice/' + k + '.mp3').then(r => r.arrayBuffer()).then(a => ac.decodeAudioData(a)).then(b => { VOX.buf[k] = trim(b); }).catch(() => { })));
+  VOX.loading = Promise.all([...new Set(Object.values(VOX_MAP))].flatMap(k => !VOX_MID || VOX_END.has(k) ? [k] : [k, k + '_m']).map(k => fetch('voice/' + k + '.mp3').then(r => r.arrayBuffer()).then(a => ac.decodeAudioData(a)).then(b => { VOX.buf[k] = trim(b); }).catch(() => { })));
   return VOX.loading;
 }
 function voxKeys(txt) {
@@ -4619,7 +4620,7 @@ function renderSettings() {
     <span>Fahrhilfe (Gegenlenken)</span>${seg('aid', [[0, 'Aus'], [0.35, 'Leicht'], [0.7, 'Stark']])}
     <span>Kamera</span>${seg('cam', CAMS.map((c, i) => [i, ['Hinten', 'Weit', 'Cockpit', 'Haube', 'Stoßst.'][i]]))}
     <h3>BEIFAHRER</h3><span>Ansagen (Stimme)</span>${seg('voice', [[true, 'An'], [false, 'Aus']])}
-    <span>Stimme</span>${seg('voiceG', [['m', 'Florian (Mann)'], ['w', 'Gerätestimme']])}
+    <span>Stimme</span>${seg('voiceG', [['m', 'Conrad (Mann)'], ['w', 'Gerätestimme']])}
     ${vs.length > 1 && S.voiceG === 'w' ? `<span>Stimme des Geräts</span><div class="seg" style="flex-wrap:wrap" id="vList">${['', ...vs.map(v => v.name)].slice(0, 7).map(n => `<button data-vn="${n}" class="${(S.voiceName || '') === n ? 'on' : ''}">${n ? n.replace(/^Google\s*/, '').slice(0, 16) : 'Automatisch'}</button>`).join('')}</div>` : ''}
     <span>Lautstärke Beifahrer</span>${rng('volVoice', 0, 1, 0.05)}
     <h3>TON &amp; MUSIK</h3><span>Musik</span>${rng('volMusic', 0, 1, 0.05)}

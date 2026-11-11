@@ -4,8 +4,9 @@
 import asyncio, os, sys
 import edge_tts
 
-VOICE = "de-DE-FlorianMultilingualNeural"
-RATE = "+18%"
+VOICE = "de-DE-ConradNeural"
+RATE = "+8%"
+MID = False   # Satzmitte-Betonung: nur sinnvoll bei Stimmen, die bei Komma oben bleiben (Conrad tut es nicht)
 NUM = ["eins", "zwei", "drei", "vier", "fünf", "sechs"]
 DIST = {50: "fünfzig", 100: "hundert", 150: "hundertfünfzig", 200: "zweihundert", 250: "zweihundertfünfzig", 300: "dreihundert", 350: "dreihundertfünfzig", 400: "vierhundert"}
 BOTH = {"hn": "Haarnadel", "lang": "lang", "zz": "zieht zu", "of": "öffnet", "ns": "nicht schneiden", "lg": "lange Gerade",
@@ -18,7 +19,7 @@ for d, w in DIST.items():
 JOBS = {}
 for k, t in BOTH.items():
     JOBS[k] = t + "."
-    JOBS[k + "_m"] = t + ","
+    if MID: JOBS[k + "_m"] = t + ","
 JOBS["ach"] = "Achtung!"
 JOBS["in"] = "in"
 JOBS["go"] = "Los geht's!"
