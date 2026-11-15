@@ -3028,7 +3028,7 @@ function updAudio(dt) {
   if (lastThr > 0.6 && thr < 0.2 && car.boost > 0.5) burst(2600, 0.9, 0.3, 0.35, 'bandpass', 'eng');
   if (car.shifted) { if (car.shifted > 0) { burst(2200, 1, 0.12, 0.2, 'bandpass', 'eng'); flames(0.7); } car.shifted = 0; }
   popT -= dt;
-  if (thr < 0.15 && rpm > 3800 && popT <= 0) { popT = 0.06 + Math.random() * 0.25; if (Math.random() < 0.6) { if (!ENG.s) burst(700 + Math.random() * 500, 0.7, 0.05 + Math.random() * 0.05, 0.6 + Math.random() * 0.6, 'lowpass', 'eng'); flames(0.6 + Math.random() * 0.6); }   // mit Schub-Aufnahme knallt es dort }
+  if (thr < 0.15 && rpm > 3800 && popT <= 0) { popT = 0.06 + Math.random() * 0.25; if (Math.random() < 0.6) { if (!ENG.s) burst(700 + Math.random() * 500, 0.7, 0.05 + Math.random() * 0.05, 0.6 + Math.random() * 0.6, 'lowpass', 'eng'); flames(0.6 + Math.random() * 0.6); } }   // mit Schub-Aufnahme knallt es dort, synthetisch nur die Flammen
   // Steinschlag in den Radkästen, beim Driften deutlich mehr
   stoneT -= dt * (asph ? 0 : snow ? v / 30 : v / 14) * (1 + slide * 2.5) * (TH === THEMES.greece ? 0.45 : 1);
   if (!car.air && stoneT <= 0) { stoneT = Math.random(); tone(2500 + Math.random() * 3000, 0.03, (0.04 + Math.random() * 0.05) * (1 + slide), 'triangle'); }

@@ -66,7 +66,8 @@ def measure(x, cyl, rpm_nom):
     lo, hi = int(SR_IN / (f_exp * 1.45)), min(int(SR_IN / (f_exp * 0.7)), n // 3)
     i = lo + int(np.argmax(ac[lo:hi]))
     if 0 < i < n - 1:
-        a, b, c = ac[i - 1], ac[i], ac[i + 1]; i = i + 0.5 * (a - c) / (a - 2 * b + c + 1e-12)
+        a, b, c = ac[i - 1], ac[i], ac[i + 1]; d = 0.5 * (a - c) / (a - 2 * b + c + 1e-12)
+        if abs(d) < 1: i = i + d   # Verfeinerung nur, wenn sie im Nachbarbereich bleibt
     return SR_IN / i * 120 / cyl, float(ac[int(round(i))])
 
 def steady(x, win):
