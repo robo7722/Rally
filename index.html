@@ -677,7 +677,7 @@ body.pad #touch{display:none!important}
 
 <div id="loading"><div class="logo"><span class="a" style="font-size:60px">RALLY</span><span class="b" style="font-size:36px">RACING</span></div><div id="loadBar"><i></i></div><div id="loadTxt">Lade …</div></div>
 <div id="rotate"><div style="font-size:60px">⟳</div>Bitte das Handy quer halten</div>
-<div class="ver" id="ver">Rally Racing v14.17</div>
+<div class="ver" id="ver">Rally Racing v14.18</div>
 
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
 <script type="module">
@@ -2222,7 +2222,7 @@ const $ = s => document.querySelector(s);
 const $$ = s => document.querySelectorAll(s);
 const clamp = (x, a, b) => x < a ? a : x > b ? b : x;
 const lerp = (a, b, t) => a + (b - a) * t;
-const VERSION = 'v14.17';
+const VERSION = 'v14.18';
 const isTouch = matchMedia('(pointer:coarse)').matches || 'ontouchstart' in window;
 if (isTouch) document.body.classList.add('istouch');
 
@@ -2943,7 +2943,8 @@ function engLoad(id) {
   const man = ENG.man || (ENG.man = fetch('engine/engine.json').then(r => r.json()).catch(() => null));
   const get = f => fetch('engine/' + f).then(r => r.arrayBuffer()).then(a => ac.decodeAudioData(a));
   man.then(M => {
-    const cd = M && M.cars[id]; if (!cd || ENG.id !== id) return;
+    let cd = M && M.cars[id]; if (cd && cd.g) cd = M.groups[cd.g];   // zusammengefasste Motoren (echte Aufnahmen, Gruppe)
+    if (!cd || ENG.id !== id) return;
     const v2 = cd.v === 2, files = cd.steps.map(st => v2 ? st.f : id + '_' + st.n + '.mp3');
     return Promise.all([...files.map(get), cd.schub ? get(cd.schub.f) : null]).then(bufs => {
       if (ENG.id !== id) return;
@@ -4714,6 +4715,7 @@ function renderSettings() {
     <h3>TON &amp; MUSIK</h3><span>Musik</span>${rng('volMusic', 0, 1, 0.05)}
     <span>Motor</span>${rng('volEngine', 0, 1, 0.05)}
     <span>Effekte</span>${rng('volFx', 0, 1, 0.05)}
+    <small style="grid-column:1/-1;font-weight:400;font-size:11px;color:#9fb0c8;line-height:1.4">Motorgeräusche: echte Aufnahmen von <i>prone</i> (Lancer Evo VI) und <i>Luciano's Classics</i> (Morris Mini) über Wikimedia Commons, Lizenz CC BY 3.0, geschnitten und in der Tonhöhe angepasst. Übrige Motoren: ElevenLabs.</small>
     <h3>FAHRER</h3><span>Fahrerprofil</span><button class="sbtn" id="profBtn">${flag(S.nat || '')} ${esc(S.name)}</button>
     <span>Karriere <small style="color:#a9c4ff">${CAREER.unlocked.length}/${CAREER_CARS.length} Autos · ${CAREER.pts} Punkte</small></span><button class="sbtn danger" id="crReset">Karriere zurücksetzen</button>`;
   $('#setList').innerHTML = SETHTML; tabifySettings();

@@ -120,3 +120,40 @@ Alle anderen v2-Autos geprüft: unauffällig (wenig Flachheit kommt dort mit vie
 
 **Ergebnis Stratos** (Flachheit/Tiefton je Stufe): 0,005/99 · 0,006/98 · 0,001/99 · 0,011/93 · 0,014/85 · 0,065/63 · 0,066/56 · 0,082/55 (vorher oben 0,004/0).
 Kosten: ~700 Credits.
+
+## v14.18 – Echte Aufnahmen, Motoren zusammengefasst
+Stand: 15.11.2026. Rückmeldung: „Subaru wie ein Traktor, auf einem springt der Sound, BMW komplett falsch. Weniger unterschiedliche
+Motoren, dafür gute. Mit Originalen abgleichen. – Kannst du nicht die echten Geräusche nehmen?“
+
+**Quellen:** Wikimedia Commons hat eine Sammlung „<Auto> – engine and exhaust sound (YouTube …)“ unter **CC BY 3.0** (Namensnennung nötig →
+Einstellungen unter „Effekte“, README, `engine/QUELLEN.md`). Geladen: Lancer Evo VI, Lancia Delta Integrale, Morris Mini.
+Gefunden, aber wegen Drosselung (HTTP 429 von upload.wikimedia.org, auch mit Pausen) **nicht** geladen: Subaru WRX STI, Escort RS2000
+(Supersprint), Renault 5 Turbo 2, Subaru Impreza STI, Alpine A110 (2017), BMW M3 (neuere Modelle). Direkter Pfad:
+`https://upload.wikimedia.org/wikipedia/commons/<md5[0]>/<md5[0:2]>/<Dateiname>` (md5 des Dateinamens mit Unterstrichen).
+
+**Gruppen (5 Klangsätze statt 17):**
+| Gruppe | Quelle | Autos |
+|---|---|---|
+| turbo4 | Lancer Evo VI (echt) | R5, 205, RS200, S4, Delta, Escort, Celica, Lancer, Impreza, 131, M3 |
+| sauger4 | Morris Mini (echt) | Mini, Fulvia, Alpine |
+| eigen | ElevenLabs | Quattro S1, 959, Stratos |
+
+**Verfahren (`tools/make_engine_real.py`):**
+1. Drehzahlverlauf der Aufnahme alle 50 ms (Zündfrequenz, Autokorrelation; Vierzylinder U/min = Hz × 30).
+2. Gleichmäßige Abschnitte: Tonhöhe ±3 %, klare Periode (Güte > 0,5), höchstens 22 dB unter dem Lautesten, ≥ 0,35 s.
+   Lancer: 31 Abschnitte 1.250–6.820 U/min. Mini: 10 Abschnitte, nur 770–840 und 2.550–3.340 U/min. Delta: nur ~1.600 U/min (nicht genutzt).
+3. Leiter 900…7.400 U/min: je Stufe der Abschnitt mit der kleinsten Verschiebung (Güte und Länge zählen mit).
+4. Abschnitte sind kurz (0,4–1 s) → zu **2-s-Loops verlängert**: zufällige Körner (0,15 s, Hann, 50 % Überlappung), immer um ganze
+   Zündperioden versetzt und im Zündtakt platziert → phasengleich, kein Wiederholungsmuster, kreisförmig nahtlos.
+5. Rubberband (Formanten erhalten), RMS 0,14, WAV 32 kHz. Spiel: `engine.json` → `groups`, Autos mit `{"g": …}`.
+
+**Abgleich mit dem Original** (Spektrum in 24 Bändern 40 Hz–8 kHz, Abweichung / Korrelation je Stufe):
+- turbo4: 1300 0,7 dB/1,00 · 1850 2,4/0,94 · 2600 0,4/1,00 · 3500 0,6/1,00 · 4600 1,1/1,00 · 5900 1,8/0,96 · 7400 2,7/0,89; Leerlauf 900 (−5,6 HT) 6,7/0,78.
+- sauger4: gut bis 3.500 (≤ 2,2 dB/≥ 0,97); oben stark verschoben (4600 +5,5 HT 6,7/0,72 · 5900 +9,8 HT 7,5/0,68 · 7400 +13,8 HT 8,5/0,64).
+  Deshalb 131 und M3 (16V bis > 7.000 U/min) in die Turbo-Gruppe; Mini/Fulvia/Alpine bleiben beim Mini-Klang.
+- Feste Linie um ~700 Hz in der Turbo-Hörprobe: keine Störung, sondern eine Resonanz, die schon im Original zu sehen ist.
+
+**Offen:**
+- Escort RS2000 laden (sobald Wikimedia nicht mehr drosselt) → echte Sauger-Aufnahme mit hohen Drehzahlen für Mini/Fulvia/Alpine (und evtl. 131/M3).
+- Subaru WRX STI laden → echter Boxer für das Impreza, falls gewünscht (aktuell Turbo-Gruppe, damit kein „Traktor“).
+- Kein Schub-Loop in den echten Gruppen (Fehlzündungen kommen synthetisch).

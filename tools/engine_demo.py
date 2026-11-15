@@ -29,6 +29,7 @@ def rpm_curve():
 
 def render(cid, M):
     cd = M["cars"][cid]; pad = int(M["pad"] * SR)
+    if "g" in cd: cd = M["groups"][cd["g"]]   # zusammengefasste Motoren
     loops = []
     for st in cd["steps"]:
         if cd.get("v") == 2: loops.append((decode(os.path.join(ROOT, "engine", st["f"])), st["ref"])); continue

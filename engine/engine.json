@@ -42,508 +42,31 @@
    ]
   },
   "fiat": {
-   "cyl": 4,
-   "v": 2,
-   "steps": [
-    {
-     "f": "fiat_0.wav",
-     "ref": 900,
-     "src": "leer_1 +4.8 HT"
-    },
-    {
-     "f": "fiat_1.wav",
-     "ref": 1300,
-     "src": "tief_1 -3.0 HT"
-    },
-    {
-     "f": "fiat_2.wav",
-     "ref": 1850,
-     "src": "tief_1 +3.1 HT"
-    },
-    {
-     "f": "fiat_3.wav",
-     "ref": 2600,
-     "src": "last_0 -6.8 HT"
-    },
-    {
-     "f": "fiat_4.wav",
-     "ref": 3500,
-     "src": "last_0 -1.7 HT"
-    },
-    {
-     "f": "fiat_5.wav",
-     "ref": 4600,
-     "src": "last_0 +3.1 HT"
-    },
-    {
-     "f": "fiat_6.wav",
-     "ref": 5900,
-     "src": "voll_2 -3.1 HT"
-    },
-    {
-     "f": "fiat_7.wav",
-     "ref": 7400,
-     "src": "voll_2 +0.8 HT"
-    }
-   ],
-   "schub": {
-    "f": "fiat_schub.wav",
-    "ref": 5568,
-    "src": "schub_0"
-   },
-   "base": {
-    "leer": 684,
-    "tief": 1545,
-    "last": 3850,
-    "voll": 7063,
-    "schub": 5568
-   }
+   "g": "turbo4"
   },
   "r5": {
-   "cyl": 4,
-   "v": 2,
-   "steps": [
-    {
-     "f": "r5_0.wav",
-     "ref": 900,
-     "src": "leer_0 -0.1 HT"
-    },
-    {
-     "f": "r5_1.wav",
-     "ref": 1300,
-     "src": "leer_0 +6.3 HT"
-    },
-    {
-     "f": "r5_2.wav",
-     "ref": 1850,
-     "src": "tief_2 -4.5 HT"
-    },
-    {
-     "f": "r5_3.wav",
-     "ref": 2600,
-     "src": "tief_2 +1.4 HT"
-    },
-    {
-     "f": "r5_4.wav",
-     "ref": 3500,
-     "src": "last_0 -1.0 HT"
-    },
-    {
-     "f": "r5_5.wav",
-     "ref": 4600,
-     "src": "last_0 +3.8 HT"
-    },
-    {
-     "f": "r5_6.wav",
-     "ref": 5900,
-     "src": "voll_2 -5.9 HT"
-    },
-    {
-     "f": "r5_7.wav",
-     "ref": 7400,
-     "src": "voll_2 -1.9 HT"
-    }
-   ],
-   "schub": {
-    "f": "r5_schub.wav",
-    "ref": 7334,
-    "src": "schub_1"
-   },
-   "base": {
-    "leer": 903,
-    "tief": 2401,
-    "last": 3700,
-    "voll": 8279,
-    "schub": 7334
-   }
+   "g": "turbo4"
   },
   "bmw": {
-   "cyl": 4,
-   "v": 2,
-   "steps": [
-    {
-     "f": "bmw_0.wav",
-     "ref": 900,
-     "src": "leer_0 +1.7 HT"
-    },
-    {
-     "f": "bmw_1.wav",
-     "ref": 1300,
-     "src": "leer_0 +8.1 HT"
-    },
-    {
-     "f": "bmw_2.wav",
-     "ref": 1850,
-     "src": "tief_0 -2.1 HT"
-    },
-    {
-     "f": "bmw_3.wav",
-     "ref": 2600,
-     "src": "tief_0 +3.8 HT"
-    },
-    {
-     "f": "bmw_4.wav",
-     "ref": 3500,
-     "src": "last_1 -3.1 HT"
-    },
-    {
-     "f": "bmw_5.wav",
-     "ref": 4600,
-     "src": "last_1 +1.7 HT"
-    },
-    {
-     "f": "bmw_6.wav",
-     "ref": 5900,
-     "src": "voll_0 -2.6 HT"
-    },
-    {
-     "f": "bmw_7.wav",
-     "ref": 7400,
-     "src": "voll_0 +1.3 HT"
-    }
-   ],
-   "schub": {
-    "f": "bmw_schub.wav",
-    "ref": 7279,
-    "src": "schub_0"
-   },
-   "base": {
-    "leer": 815,
-    "tief": 2085,
-    "last": 4181,
-    "voll": 6845,
-    "schub": 7279
-   }
+   "g": "turbo4"
   },
   "delta": {
-   "cyl": 4,
-   "v": 2,
-   "steps": [
-    {
-     "f": "delta_0.wav",
-     "ref": 900,
-     "src": "leer_1 -4.5 HT"
-    },
-    {
-     "f": "delta_1.wav",
-     "ref": 1300,
-     "src": "leer_1 +1.8 HT"
-    },
-    {
-     "f": "delta_2.wav",
-     "ref": 1850,
-     "src": "tief_2 -4.0 HT"
-    },
-    {
-     "f": "delta_3.wav",
-     "ref": 2600,
-     "src": "tief_2 +1.9 HT"
-    },
-    {
-     "f": "delta_4.wav",
-     "ref": 3500,
-     "src": "last_2 +0.5 HT"
-    },
-    {
-     "f": "delta_5.wav",
-     "ref": 4600,
-     "src": "last_2 +5.2 HT"
-    },
-    {
-     "f": "delta_6.wav",
-     "ref": 5900,
-     "src": "voll_0 -1.4 HT"
-    },
-    {
-     "f": "delta_7.wav",
-     "ref": 7400,
-     "src": "voll_0 +2.5 HT"
-    }
-   ],
-   "schub": {
-    "f": "delta_schub.wav",
-    "ref": 5038,
-    "src": "schub_0"
-   },
-   "base": {
-    "leer": 1168,
-    "tief": 2331,
-    "last": 3400,
-    "voll": 6393,
-    "schub": 5038
-   }
+   "g": "turbo4"
   },
   "escort": {
-   "cyl": 4,
-   "v": 2,
-   "steps": [
-    {
-     "f": "escort_0.wav",
-     "ref": 900,
-     "src": "leer_1 +2.8 HT"
-    },
-    {
-     "f": "escort_1.wav",
-     "ref": 1300,
-     "src": "tief_0 -6.5 HT"
-    },
-    {
-     "f": "escort_2.wav",
-     "ref": 1850,
-     "src": "tief_0 -0.4 HT"
-    },
-    {
-     "f": "escort_3.wav",
-     "ref": 2600,
-     "src": "last_2 -4.6 HT"
-    },
-    {
-     "f": "escort_4.wav",
-     "ref": 3500,
-     "src": "last_2 +0.6 HT"
-    },
-    {
-     "f": "escort_5.wav",
-     "ref": 4600,
-     "src": "last_2 +5.3 HT"
-    },
-    {
-     "f": "escort_6.wav",
-     "ref": 5900,
-     "src": "voll_0 -3.4 HT"
-    },
-    {
-     "f": "escort_7.wav",
-     "ref": 7400,
-     "src": "voll_0 +0.6 HT"
-    }
-   ],
-   "schub": {
-    "f": "escort_schub.wav",
-    "ref": 4636,
-    "src": "schub_0"
-   },
-   "base": {
-    "leer": 764,
-    "tief": 1895,
-    "last": 3390,
-    "voll": 7162,
-    "schub": 4636
-   }
+   "g": "turbo4"
   },
   "celica": {
-   "cyl": 4,
-   "v": 2,
-   "steps": [
-    {
-     "f": "celica_0.wav",
-     "ref": 900,
-     "src": "leer_1 -1.3 HT"
-    },
-    {
-     "f": "celica_1.wav",
-     "ref": 1300,
-     "src": "tief_0 -4.7 HT"
-    },
-    {
-     "f": "celica_2.wav",
-     "ref": 1850,
-     "src": "tief_0 +1.5 HT"
-    },
-    {
-     "f": "celica_3.wav",
-     "ref": 2600,
-     "src": "last_2 -2.1 HT"
-    },
-    {
-     "f": "celica_4.wav",
-     "ref": 3500,
-     "src": "last_2 +3.0 HT"
-    },
-    {
-     "f": "celica_5.wav",
-     "ref": 4600,
-     "src": "last_2 +7.8 HT"
-    },
-    {
-     "f": "celica_6.wav",
-     "ref": 5900,
-     "src": "voll_0 -6.2 HT"
-    },
-    {
-     "f": "celica_7.wav",
-     "ref": 7400,
-     "src": "voll_0 -2.3 HT"
-    }
-   ],
-   "schub": {
-    "f": "celica_schub.wav",
-    "ref": 7178,
-    "src": "schub_0"
-   },
-   "base": {
-    "leer": 971,
-    "tief": 1701,
-    "last": 2938,
-    "voll": 8460,
-    "schub": 7178
-   }
+   "g": "turbo4"
   },
   "subaru": {
-   "cyl": 4,
-   "v": 2,
-   "steps": [
-    {
-     "f": "subaru_0.wav",
-     "ref": 900,
-     "src": "leer_2 +1.8 HT"
-    },
-    {
-     "f": "subaru_1.wav",
-     "ref": 1300,
-     "src": "tief_0 -6.1 HT"
-    },
-    {
-     "f": "subaru_2.wav",
-     "ref": 1850,
-     "src": "tief_0 -0.0 HT"
-    },
-    {
-     "f": "subaru_3.wav",
-     "ref": 2600,
-     "src": "tief_0 +5.9 HT"
-    },
-    {
-     "f": "subaru_4.wav",
-     "ref": 3500,
-     "src": "last_0 -1.8 HT"
-    },
-    {
-     "f": "subaru_5.wav",
-     "ref": 4600,
-     "src": "last_0 +2.9 HT"
-    },
-    {
-     "f": "subaru_6.wav",
-     "ref": 5900,
-     "src": "voll_1 -6.1 HT"
-    },
-    {
-     "f": "subaru_7.wav",
-     "ref": 7400,
-     "src": "voll_1 -2.1 HT"
-    }
-   ],
-   "schub": {
-    "f": "subaru_schub.wav",
-    "ref": 3553,
-    "src": "schub_0"
-   },
-   "base": {
-    "leer": 810,
-    "tief": 1853,
-    "last": 3891,
-    "voll": 8376,
-    "schub": 3553
-   }
+   "g": "turbo4"
   },
   "lancer": {
-   "cyl": 4,
-   "v": 2,
-   "steps": [
-    {
-     "f": "lancer_0.wav",
-     "ref": 900,
-     "src": "leer_2 -0.6 HT"
-    },
-    {
-     "f": "lancer_1.wav",
-     "ref": 1300,
-     "src": "leer_2 +5.8 HT"
-    },
-    {
-     "f": "lancer_2.wav",
-     "ref": 1850,
-     "src": "tief_1 -3.4 HT"
-    },
-    {
-     "f": "lancer_3.wav",
-     "ref": 2600,
-     "src": "tief_1 +2.5 HT"
-    },
-    {
-     "f": "lancer_4.wav",
-     "ref": 3500,
-     "src": "last_2 -1.0 HT"
-    },
-    {
-     "f": "lancer_5.wav",
-     "ref": 4600,
-     "src": "last_2 +3.7 HT"
-    },
-    {
-     "f": "lancer_6.wav",
-     "ref": 5900,
-     "src": "voll_0 -3.5 HT"
-    },
-    {
-     "f": "lancer_7.wav",
-     "ref": 7400,
-     "src": "voll_0 +0.4 HT"
-    }
-   ],
-   "schub": {
-    "f": "lancer_schub.wav",
-    "ref": 6820,
-    "src": "schub_1"
-   },
-   "base": {
-    "leer": 932,
-    "tief": 2247,
-    "last": 3719,
-    "voll": 7228,
-    "schub": 6820
-   }
+   "g": "turbo4"
   },
   "rs200": {
-   "cyl": 4,
-   "steps": [
-    {
-     "n": "idle",
-     "rpm": 950,
-     "ref": 1221,
-     "len": 2.48,
-     "src": "idle_0"
-    },
-    {
-     "n": "low",
-     "rpm": 2200,
-     "ref": 2451,
-     "len": 2.48,
-     "src": "low_2"
-    },
-    {
-     "n": "mid",
-     "rpm": 3700,
-     "ref": 3939,
-     "len": 2.48,
-     "src": "high_0"
-    },
-    {
-     "n": "high",
-     "rpm": 5400,
-     "ref": 5091,
-     "len": 2.48,
-     "src": "mid_0"
-    },
-    {
-     "n": "max",
-     "rpm": 7200,
-     "ref": 7225,
-     "len": 2.48,
-     "src": "max_0"
-    }
-   ]
+   "g": "turbo4"
   },
   "p959": {
    "cyl": 6,
@@ -586,84 +109,10 @@
    ]
   },
   "s4": {
-   "cyl": 4,
-   "steps": [
-    {
-     "n": "idle",
-     "rpm": 950,
-     "ref": 1038,
-     "len": 2.48,
-     "src": "idle_0"
-    },
-    {
-     "n": "low",
-     "rpm": 2200,
-     "ref": 2736,
-     "len": 2.48,
-     "src": "low_4"
-    },
-    {
-     "n": "mid",
-     "rpm": 3700,
-     "ref": 3289,
-     "len": 2.48,
-     "src": "high_0"
-    },
-    {
-     "n": "high",
-     "rpm": 5400,
-     "ref": 5085,
-     "len": 2.48,
-     "src": "mid_2"
-    },
-    {
-     "n": "max",
-     "rpm": 7200,
-     "ref": 7410,
-     "len": 2.48,
-     "src": "max_2"
-    }
-   ]
+   "g": "turbo4"
   },
   "p205": {
-   "cyl": 4,
-   "steps": [
-    {
-     "n": "idle",
-     "rpm": 950,
-     "ref": 838,
-     "len": 2.48,
-     "src": "idle_3"
-    },
-    {
-     "n": "low",
-     "rpm": 2200,
-     "ref": 2378,
-     "len": 2.48,
-     "src": "low_0"
-    },
-    {
-     "n": "mid",
-     "rpm": 3700,
-     "ref": 3548,
-     "len": 2.48,
-     "src": "mid_0"
-    },
-    {
-     "n": "high",
-     "rpm": 5400,
-     "ref": 4434,
-     "len": 2.48,
-     "src": "high_1"
-    },
-    {
-     "n": "max",
-     "rpm": 7200,
-     "ref": 8237,
-     "len": 2.48,
-     "src": "max_1"
-    }
-   ]
+   "g": "turbo4"
   },
   "stratos": {
    "cyl": 6,
@@ -724,142 +173,119 @@
    }
   },
   "mini": {
+   "g": "sauger4"
+  },
+  "fulvia": {
+   "g": "sauger4"
+  },
+  "alpine": {
+   "g": "sauger4"
+  }
+ },
+ "groups": {
+  "turbo4": {
    "cyl": 4,
    "v": 2,
    "steps": [
     {
-     "f": "mini_0.wav",
+     "f": "turbo4_0.wav",
      "ref": 900,
-     "src": "leer_0 -0.9 HT"
+     "src": "80.66-81.46 s, 1247 U/min, -5.6 HT"
     },
     {
-     "f": "mini_1.wav",
+     "f": "turbo4_1.wav",
      "ref": 1300,
-     "src": "leer_0 +5.4 HT"
+     "src": "76.07-76.87 s, 1309 U/min, -0.1 HT"
     },
     {
-     "f": "mini_2.wav",
+     "f": "turbo4_2.wav",
      "ref": 1850,
-     "src": "tief_0 -0.3 HT"
+     "src": "72.27-73.42 s, 1741 U/min, +1.1 HT"
     },
     {
-     "f": "mini_3.wav",
+     "f": "turbo4_3.wav",
      "ref": 2600,
-     "src": "last_2 -3.7 HT"
+     "src": "41.58-42.28 s, 2549 U/min, +0.3 HT"
     },
     {
-     "f": "mini_4.wav",
+     "f": "turbo4_4.wav",
      "ref": 3500,
-     "src": "last_2 +1.4 HT"
+     "src": "14.59-15.19 s, 3482 U/min, +0.1 HT"
     },
     {
-     "f": "mini_5.wav",
+     "f": "turbo4_5.wav",
      "ref": 4600,
-     "src": "voll_2 -6.0 HT"
+     "src": "47.03-47.73 s, 4937 U/min, -1.2 HT"
     },
     {
-     "f": "mini_6.wav",
+     "f": "turbo4_6.wav",
      "ref": 5900,
-     "src": "voll_2 -1.7 HT"
+     "src": "39.18-40.18 s, 6182 U/min, -0.8 HT"
     },
     {
-     "f": "mini_7.wav",
+     "f": "turbo4_7.wav",
      "ref": 7400,
-     "src": "voll_2 +2.2 HT"
+     "src": "101.45-102.05 s, 6820 U/min, +1.4 HT"
     }
    ],
-   "schub": {
-    "f": "mini_schub.wav",
-    "ref": 6665,
-    "src": "schub_1"
-   },
-   "base": {
-    "leer": 950,
-    "tief": 1877,
-    "last": 3222,
-    "voll": 6510,
-    "schub": 6665
+   "desc": "Turbo-Vierzylinder (Mitsubishi Lancer Evolution VI, 4G63)",
+   "credit": {
+    "file": "https://commons.wikimedia.org/wiki/File:Mitsubishi_Lancer_Evolution_VI_-_engine_and_exhaust_sound_(YouTube_p2UANOqploM).opus",
+    "author": "prone (YouTube), via Wikimedia Commons",
+    "license": "CC BY 3.0 (https://creativecommons.org/licenses/by/3.0)"
    }
   },
-  "fulvia": {
+  "sauger4": {
    "cyl": 4,
+   "v": 2,
    "steps": [
     {
-     "n": "idle",
-     "rpm": 950,
-     "ref": 759,
-     "len": 2.48,
-     "src": "idle_0"
+     "f": "sauger4_0.wav",
+     "ref": 900,
+     "src": "20.54-21.79 s, 815 U/min, +1.7 HT"
     },
     {
-     "n": "low",
-     "rpm": 2200,
-     "ref": 2389,
-     "len": 2.48,
-     "src": "mid_2"
+     "f": "sauger4_1.wav",
+     "ref": 1300,
+     "src": "20.54-21.79 s, 815 U/min, +8.1 HT"
     },
     {
-     "n": "mid",
-     "rpm": 3700,
-     "ref": 3206,
-     "len": 2.48,
-     "src": "mid_0"
+     "f": "sauger4_2.wav",
+     "ref": 1850,
+     "src": "22.99-23.64 s, 2554 U/min, -5.6 HT"
     },
     {
-     "n": "high",
-     "rpm": 5400,
-     "ref": 5639,
-     "len": 2.48,
-     "src": "high_2"
+     "f": "sauger4_3.wav",
+     "ref": 2600,
+     "src": "22.99-23.64 s, 2554 U/min, +0.3 HT"
     },
     {
-     "n": "max",
-     "rpm": 7200,
-     "ref": 6939,
-     "len": 2.48,
-     "src": "high_1"
+     "f": "sauger4_4.wav",
+     "ref": 3500,
+     "src": "25.24-26.39 s, 3341 U/min, +0.8 HT"
+    },
+    {
+     "f": "sauger4_5.wav",
+     "ref": 4600,
+     "src": "25.24-26.39 s, 3341 U/min, +5.5 HT"
+    },
+    {
+     "f": "sauger4_6.wav",
+     "ref": 5900,
+     "src": "25.24-26.39 s, 3341 U/min, +9.8 HT"
+    },
+    {
+     "f": "sauger4_7.wav",
+     "ref": 7400,
+     "src": "25.24-26.39 s, 3341 U/min, +13.8 HT"
     }
-   ]
-  },
-  "alpine": {
-   "cyl": 4,
-   "steps": [
-    {
-     "n": "idle",
-     "rpm": 950,
-     "ref": 808,
-     "len": 2.48,
-     "src": "idle_3"
-    },
-    {
-     "n": "low",
-     "rpm": 2200,
-     "ref": 2065,
-     "len": 2.48,
-     "src": "low_1"
-    },
-    {
-     "n": "mid",
-     "rpm": 3700,
-     "ref": 4127,
-     "len": 2.48,
-     "src": "low_2"
-    },
-    {
-     "n": "high",
-     "rpm": 5400,
-     "ref": 5561,
-     "len": 2.48,
-     "src": "max_0"
-    },
-    {
-     "n": "max",
-     "rpm": 7200,
-     "ref": 7286,
-     "len": 2.48,
-     "src": "max_2"
-    }
-   ]
+   ],
+   "desc": "Sauger-Vierzylinder (1969 Morris Mini Cooper 1000)",
+   "credit": {
+    "file": "https://commons.wikimedia.org/wiki/File:Morris_Mini_-_engine_and_exhaust_sound_(YouTube_K-j53v8lwzM).opus",
+    "author": "Luciano's Classics (YouTube), via Wikimedia Commons",
+    "license": "CC BY 3.0 (https://creativecommons.org/licenses/by/3.0)"
+   }
   }
  }
 }
