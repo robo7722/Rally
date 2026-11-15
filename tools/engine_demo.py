@@ -31,6 +31,7 @@ def render(cid, M):
     cd = M["cars"][cid]; pad = int(M["pad"] * SR)
     loops = []
     for st in cd["steps"]:
+        if cd.get("v") == 2: loops.append((decode(os.path.join(ROOT, "engine", st["f"])), st["ref"])); continue
         x = decode(os.path.join(ROOT, "engine", "%s_%s.mp3" % (cid, st["n"])))
         L = int(round(st["len"] * SR)); loops.append((x[pad:pad + L], st["ref"]))
     rpm, thr = rpm_curve(); n = len(rpm); out = np.zeros(n)
@@ -45,7 +46,13 @@ def render(cid, M):
         y = lp[k0 % len(lp)] * (1 - fr) + lp[(k0 + 1) % len(lp)] * fr
         out += w * y
     lv = (0.5 + 0.5 * np.clip((rpm - 900) / 6500, 0, 1)) * (0.62 + 0.38 * thr)
-    out *= lv
+    sw = np.clip((0.45 - thr) / 0.35, 0, 1) * np.clip((rpm - 2500) / 1500, 0, 1) if cd.get("schub") else np.zeros(n)
+    out *= lv * (1 - 0.35 * sw)
+    sch = None
+    if cd.get("schub"):   # Gas weg: Schub-Loop, am Tiefpass vorbei
+        lp = decode(os.path.join(ROOT, "engine", cd["schub"]["f"])); rate = np.clip(rpm / cd["schub"]["ref"], 0.6, 1.6)
+        ph = np.cumsum(rate) + np.random.rand() * len(lp); k0 = np.floor(ph).astype(np.int64); fr = ph - k0
+        sch = (lp[k0 % len(lp)] * (1 - fr) + lp[(k0 + 1) % len(lp)] * fr) * sw * lv * 1.2
     # Schiebebetrieb dumpfer: einfacher Tiefpass, Grenzfrequenz folgt Gas und Drehzahl (blockweise)
     fc = 1400 + rpm * 0.5 + thr * 9000; y = np.zeros(n); z = 0.0
     a = 1 - np.exp(-2 * np.pi * fc / SR)
@@ -55,6 +62,7 @@ def render(cid, M):
             seg = out[s0:s0 + 512]; o = np.empty_like(seg)
             for q in range(len(seg)): z += aa * (seg[q] - z); o[q] = z
             y[s0:s0 + 512] = o
+    if sch is not None: y = y + sch
     return y / (np.max(np.abs(y)) + 1e-9) * 0.9
 
 def main():

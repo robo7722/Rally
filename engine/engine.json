@@ -43,43 +43,61 @@
   },
   "fiat": {
    "cyl": 4,
+   "v": 2,
    "steps": [
     {
-     "n": "idle",
-     "rpm": 950,
-     "ref": 1170,
-     "len": 2.48,
-     "src": "idle_2"
+     "f": "fiat_0.wav",
+     "ref": 900,
+     "src": "leer_0 +5.0 HT"
     },
     {
-     "n": "low",
-     "rpm": 2200,
-     "ref": 1936,
-     "len": 2.48,
-     "src": "low_1"
+     "f": "fiat_1.wav",
+     "ref": 1300,
+     "src": "tief_1 -3.0 HT"
     },
     {
-     "n": "mid",
-     "rpm": 3700,
-     "ref": 3538,
-     "len": 2.48,
-     "src": "high_1"
+     "f": "fiat_2.wav",
+     "ref": 1850,
+     "src": "tief_1 +3.1 HT"
     },
     {
-     "n": "high",
-     "rpm": 5400,
-     "ref": 4287,
-     "len": 2.48,
-     "src": "mid_0"
+     "f": "fiat_3.wav",
+     "ref": 2600,
+     "src": "last_0 -6.8 HT"
     },
     {
-     "n": "max",
-     "rpm": 7200,
-     "ref": 6645,
-     "len": 2.48,
-     "src": "max_0"
+     "f": "fiat_4.wav",
+     "ref": 3500,
+     "src": "last_0 -1.7 HT"
+    },
+    {
+     "f": "fiat_5.wav",
+     "ref": 4600,
+     "src": "last_0 +3.1 HT"
+    },
+    {
+     "f": "fiat_6.wav",
+     "ref": 5900,
+     "src": "voll_2 -3.1 HT"
+    },
+    {
+     "f": "fiat_7.wav",
+     "ref": 7400,
+     "src": "voll_2 +0.8 HT"
     }
-   ]
+   ],
+   "schub": {
+    "f": "fiat_schub.wav",
+    "ref": 5568,
+    "src": "schub_0"
+   },
+   "base": {
+    "leer": 675,
+    "tief": 1545,
+    "last": 3850,
+    "voll": 7063,
+    "schub": 5568
+   }
   },
   "r5": {
    "cyl": 4,
@@ -563,43 +581,61 @@
   },
   "mini": {
    "cyl": 4,
+   "v": 2,
    "steps": [
     {
-     "n": "idle",
-     "rpm": 950,
-     "ref": 1124,
-     "len": 2.48,
-     "src": "idle_2"
+     "f": "mini_0.wav",
+     "ref": 900,
+     "src": "leer_2 +3.0 HT"
     },
     {
-     "n": "low",
-     "rpm": 2200,
-     "ref": 3120,
-     "len": 2.48,
-     "src": "mid_3"
+     "f": "mini_1.wav",
+     "ref": 1300,
+     "src": "leer_2 +9.4 HT"
     },
     {
-     "n": "mid",
-     "rpm": 3700,
-     "ref": 3623,
-     "len": 2.48,
-     "src": "mid_2"
+     "f": "mini_2.wav",
+     "ref": 1850,
+     "src": "tief_0 -9.6 HT"
     },
     {
-     "n": "high",
-     "rpm": 5400,
-     "ref": 5226,
-     "len": 2.48,
-     "src": "high_1"
+     "f": "mini_3.wav",
+     "ref": 2600,
+     "src": "tief_0 -3.7 HT"
     },
     {
-     "n": "max",
-     "rpm": 7200,
-     "ref": 7070,
-     "len": 2.48,
-     "src": "max_2"
+     "f": "mini_4.wav",
+     "ref": 3500,
+     "src": "last_1 +1.5 HT"
+    },
+    {
+     "f": "mini_5.wav",
+     "ref": 4600,
+     "src": "last_1 +6.2 HT"
+    },
+    {
+     "f": "mini_6.wav",
+     "ref": 5900,
+     "src": "voll_0 -3.4 HT"
+    },
+    {
+     "f": "mini_7.wav",
+     "ref": 7400,
+     "src": "voll_0 +0.5 HT"
     }
-   ]
+   ],
+   "schub": {
+    "f": "mini_schub.wav",
+    "ref": 7148,
+    "src": "schub_0"
+   },
+   "base": {
+    "leer": 757,
+    "tief": 3212,
+    "last": 3216,
+    "voll": 7198,
+    "schub": 7148
+   }
   },
   "fulvia": {
    "cyl": 4,
