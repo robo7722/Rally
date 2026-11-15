@@ -1,0 +1,645 @@
+{
+ "pad": 0.1,
+ "cars": {
+  "audi": {
+   "cyl": 5,
+   "steps": [
+    {
+     "n": "idle",
+     "rpm": 950,
+     "ref": 929,
+     "len": 2.48,
+     "src": "idle_0"
+    },
+    {
+     "n": "low",
+     "rpm": 2200,
+     "ref": 2165,
+     "len": 2.48,
+     "src": "low_0"
+    },
+    {
+     "n": "mid",
+     "rpm": 3700,
+     "ref": 2937,
+     "len": 2.48,
+     "src": "low_2"
+    },
+    {
+     "n": "high",
+     "rpm": 5400,
+     "ref": 5598,
+     "len": 2.48,
+     "src": "high_1"
+    },
+    {
+     "n": "max",
+     "rpm": 7200,
+     "ref": 7240,
+     "len": 2.48,
+     "src": "high_0"
+    }
+   ]
+  },
+  "fiat": {
+   "cyl": 4,
+   "steps": [
+    {
+     "n": "idle",
+     "rpm": 950,
+     "ref": 1170,
+     "len": 2.48,
+     "src": "idle_2"
+    },
+    {
+     "n": "low",
+     "rpm": 2200,
+     "ref": 1936,
+     "len": 2.48,
+     "src": "low_1"
+    },
+    {
+     "n": "mid",
+     "rpm": 3700,
+     "ref": 3538,
+     "len": 2.48,
+     "src": "high_1"
+    },
+    {
+     "n": "high",
+     "rpm": 5400,
+     "ref": 4287,
+     "len": 2.48,
+     "src": "mid_0"
+    },
+    {
+     "n": "max",
+     "rpm": 7200,
+     "ref": 6645,
+     "len": 2.48,
+     "src": "max_0"
+    }
+   ]
+  },
+  "r5": {
+   "cyl": 4,
+   "steps": [
+    {
+     "n": "idle",
+     "rpm": 950,
+     "ref": 1093,
+     "len": 2.48,
+     "src": "idle_1"
+    },
+    {
+     "n": "low",
+     "rpm": 2200,
+     "ref": 2333,
+     "len": 2.48,
+     "src": "low_2"
+    },
+    {
+     "n": "mid",
+     "rpm": 3700,
+     "ref": 3460,
+     "len": 2.48,
+     "src": "mid_1"
+    },
+    {
+     "n": "high",
+     "rpm": 5400,
+     "ref": 4212,
+     "len": 2.48,
+     "src": "high_0"
+    },
+    {
+     "n": "max",
+     "rpm": 7200,
+     "ref": 8042,
+     "len": 2.48,
+     "src": "max_0"
+    }
+   ]
+  },
+  "bmw": {
+   "cyl": 4,
+   "steps": [
+    {
+     "n": "idle",
+     "rpm": 950,
+     "ref": 993,
+     "len": 2.48,
+     "src": "idle_3"
+    },
+    {
+     "n": "low",
+     "rpm": 2200,
+     "ref": 2291,
+     "len": 2.48,
+     "src": "low_1"
+    },
+    {
+     "n": "mid",
+     "rpm": 3700,
+     "ref": 3514,
+     "len": 2.48,
+     "src": "high_1"
+    },
+    {
+     "n": "high",
+     "rpm": 5400,
+     "ref": 5890,
+     "len": 2.48,
+     "src": "mid_1"
+    },
+    {
+     "n": "max",
+     "rpm": 7200,
+     "ref": 7176,
+     "len": 2.48,
+     "src": "high_0"
+    }
+   ]
+  },
+  "delta": {
+   "cyl": 4,
+   "steps": [
+    {
+     "n": "idle",
+     "rpm": 950,
+     "ref": 1178,
+     "len": 2.48,
+     "src": "idle_1"
+    },
+    {
+     "n": "low",
+     "rpm": 2200,
+     "ref": 2788,
+     "len": 2.48,
+     "src": "low_1"
+    },
+    {
+     "n": "mid",
+     "rpm": 3700,
+     "ref": 3740,
+     "len": 2.48,
+     "src": "mid_1"
+    },
+    {
+     "n": "high",
+     "rpm": 5400,
+     "ref": 4812,
+     "len": 2.48,
+     "src": "high_1"
+    },
+    {
+     "n": "max",
+     "rpm": 7200,
+     "ref": 6663,
+     "len": 2.48,
+     "src": "max_2"
+    }
+   ]
+  },
+  "escort": {
+   "cyl": 4,
+   "steps": [
+    {
+     "n": "idle",
+     "rpm": 950,
+     "ref": 957,
+     "len": 2.48,
+     "src": "idle_2"
+    },
+    {
+     "n": "low",
+     "rpm": 2200,
+     "ref": 1886,
+     "len": 2.48,
+     "src": "mid_1"
+    },
+    {
+     "n": "mid",
+     "rpm": 3700,
+     "ref": 3250,
+     "len": 2.48,
+     "src": "high_0"
+    },
+    {
+     "n": "high",
+     "rpm": 5400,
+     "ref": 5540,
+     "len": 2.48,
+     "src": "high_2"
+    },
+    {
+     "n": "max",
+     "rpm": 7200,
+     "ref": 6456,
+     "len": 2.48,
+     "src": "max_0"
+    }
+   ]
+  },
+  "celica": {
+   "cyl": 4,
+   "steps": [
+    {
+     "n": "idle",
+     "rpm": 950,
+     "ref": 1163,
+     "len": 2.48,
+     "src": "idle_1"
+    },
+    {
+     "n": "low",
+     "rpm": 2200,
+     "ref": 2334,
+     "len": 2.48,
+     "src": "low_4"
+    },
+    {
+     "n": "mid",
+     "rpm": 3700,
+     "ref": 3802,
+     "len": 2.48,
+     "src": "high_0"
+    },
+    {
+     "n": "high",
+     "rpm": 5400,
+     "ref": 4875,
+     "len": 2.48,
+     "src": "high_2"
+    },
+    {
+     "n": "max",
+     "rpm": 7200,
+     "ref": 7442,
+     "len": 2.48,
+     "src": "max_1"
+    }
+   ]
+  },
+  "subaru": {
+   "cyl": 4,
+   "steps": [
+    {
+     "n": "idle",
+     "rpm": 950,
+     "ref": 809,
+     "len": 2.48,
+     "src": "idle_3"
+    },
+    {
+     "n": "low",
+     "rpm": 2200,
+     "ref": 1754,
+     "len": 2.48,
+     "src": "low_3"
+    },
+    {
+     "n": "mid",
+     "rpm": 3700,
+     "ref": 3303,
+     "len": 2.48,
+     "src": "low_2"
+    },
+    {
+     "n": "high",
+     "rpm": 5400,
+     "ref": 3857,
+     "len": 2.48,
+     "src": "high_0"
+    },
+    {
+     "n": "max",
+     "rpm": 7200,
+     "ref": 5516,
+     "len": 2.48,
+     "src": "max_1"
+    }
+   ]
+  },
+  "lancer": {
+   "cyl": 4,
+   "steps": [
+    {
+     "n": "idle",
+     "rpm": 950,
+     "ref": 736,
+     "len": 2.48,
+     "src": "idle_4"
+    },
+    {
+     "n": "low",
+     "rpm": 2200,
+     "ref": 2241,
+     "len": 2.48,
+     "src": "low_5"
+    },
+    {
+     "n": "mid",
+     "rpm": 3700,
+     "ref": 3675,
+     "len": 2.48,
+     "src": "mid_2"
+    },
+    {
+     "n": "high",
+     "rpm": 5400,
+     "ref": 4856,
+     "len": 2.48,
+     "src": "max_0"
+    },
+    {
+     "n": "max",
+     "rpm": 7200,
+     "ref": 7442,
+     "len": 2.48,
+     "src": "high_1"
+    }
+   ]
+  },
+  "rs200": {
+   "cyl": 4,
+   "steps": [
+    {
+     "n": "idle",
+     "rpm": 950,
+     "ref": 1221,
+     "len": 2.48,
+     "src": "idle_0"
+    },
+    {
+     "n": "low",
+     "rpm": 2200,
+     "ref": 2451,
+     "len": 2.48,
+     "src": "low_2"
+    },
+    {
+     "n": "mid",
+     "rpm": 3700,
+     "ref": 3939,
+     "len": 2.48,
+     "src": "high_0"
+    },
+    {
+     "n": "high",
+     "rpm": 5400,
+     "ref": 5091,
+     "len": 2.48,
+     "src": "mid_0"
+    },
+    {
+     "n": "max",
+     "rpm": 7200,
+     "ref": 7225,
+     "len": 2.48,
+     "src": "max_0"
+    }
+   ]
+  },
+  "p959": {
+   "cyl": 6,
+   "steps": [
+    {
+     "n": "idle",
+     "rpm": 950,
+     "ref": 1150,
+     "len": 2.48,
+     "src": "idle_2"
+    },
+    {
+     "n": "low",
+     "rpm": 2200,
+     "ref": 2312,
+     "len": 2.48,
+     "src": "mid_0"
+    },
+    {
+     "n": "mid",
+     "rpm": 3700,
+     "ref": 3196,
+     "len": 2.48,
+     "src": "low_2"
+    },
+    {
+     "n": "high",
+     "rpm": 5400,
+     "ref": 5683,
+     "len": 2.48,
+     "src": "max_3"
+    },
+    {
+     "n": "max",
+     "rpm": 7200,
+     "ref": 8751,
+     "len": 2.48,
+     "src": "max_4"
+    }
+   ]
+  },
+  "s4": {
+   "cyl": 4,
+   "steps": [
+    {
+     "n": "idle",
+     "rpm": 950,
+     "ref": 1038,
+     "len": 2.48,
+     "src": "idle_0"
+    },
+    {
+     "n": "low",
+     "rpm": 2200,
+     "ref": 2736,
+     "len": 2.48,
+     "src": "low_4"
+    },
+    {
+     "n": "mid",
+     "rpm": 3700,
+     "ref": 3289,
+     "len": 2.48,
+     "src": "high_0"
+    },
+    {
+     "n": "high",
+     "rpm": 5400,
+     "ref": 5085,
+     "len": 2.48,
+     "src": "mid_2"
+    },
+    {
+     "n": "max",
+     "rpm": 7200,
+     "ref": 7410,
+     "len": 2.48,
+     "src": "max_2"
+    }
+   ]
+  },
+  "p205": {
+   "cyl": 4,
+   "steps": [
+    {
+     "n": "idle",
+     "rpm": 950,
+     "ref": 838,
+     "len": 2.48,
+     "src": "idle_3"
+    },
+    {
+     "n": "low",
+     "rpm": 2200,
+     "ref": 2378,
+     "len": 2.48,
+     "src": "low_0"
+    },
+    {
+     "n": "mid",
+     "rpm": 3700,
+     "ref": 3548,
+     "len": 2.48,
+     "src": "mid_0"
+    },
+    {
+     "n": "high",
+     "rpm": 5400,
+     "ref": 4434,
+     "len": 2.48,
+     "src": "high_1"
+    },
+    {
+     "n": "max",
+     "rpm": 7200,
+     "ref": 8237,
+     "len": 2.48,
+     "src": "max_1"
+    }
+   ]
+  },
+  "stratos": {
+   "cyl": 6,
+   "steps": [
+    {
+     "n": "idle",
+     "rpm": 950,
+     "ref": 736,
+     "len": 2.48,
+     "src": "idle_2"
+    },
+    {
+     "n": "low",
+     "rpm": 2200,
+     "ref": 2639,
+     "len": 2.48,
+     "src": "low_2"
+    },
+    {
+     "n": "mid",
+     "rpm": 3700,
+     "ref": 4519,
+     "len": 2.48,
+     "src": "mid_1"
+    },
+    {
+     "n": "high",
+     "rpm": 5400,
+     "ref": 5561,
+     "len": 2.48,
+     "src": "high_1"
+    },
+    {
+     "n": "max",
+     "rpm": 7200,
+     "ref": 9654,
+     "len": 2.48,
+     "src": "max_3"
+    }
+   ]
+  },
+  "mini": {
+   "cyl": 4,
+   "steps": [
+    {
+     "n": "idle",
+     "rpm": 950,
+     "ref": 1124,
+     "len": 2.48,
+     "src": "idle_2"
+    },
+    {
+     "n": "low",
+     "rpm": 2200,
+     "ref": 3120,
+     "len": 2.48,
+     "src": "mid_3"
+    },
+    {
+     "n": "mid",
+     "rpm": 3700,
+     "ref": 3623,
+     "len": 2.48,
+     "src": "mid_2"
+    },
+    {
+     "n": "high",
+     "rpm": 5400,
+     "ref": 5226,
+     "len": 2.48,
+     "src": "high_1"
+    },
+    {
+     "n": "max",
+     "rpm": 7200,
+     "ref": 7070,
+     "len": 2.48,
+     "src": "max_2"
+    }
+   ]
+  },
+  "fulvia": {
+   "cyl": 4,
+   "steps": [
+    {
+     "n": "idle",
+     "rpm": 950,
+     "ref": 759,
+     "len": 2.48,
+     "src": "idle_0"
+    },
+    {
+     "n": "low",
+     "rpm": 2200,
+     "ref": 2389,
+     "len": 2.48,
+     "src": "mid_2"
+    },
+    {
+     "n": "mid",
+     "rpm": 3700,
+     "ref": 3206,
+     "len": 2.48,
+     "src": "mid_0"
+    },
+    {
+     "n": "high",
+     "rpm": 5400,
+     "ref": 5639,
+     "len": 2.48,
+     "src": "high_2"
+    },
+    {
+     "n": "max",
+     "rpm": 7200,
+     "ref": 6939,
+     "len": 2.48,
+     "src": "high_1"
+    }
+   ]
+  }
+ }
+}

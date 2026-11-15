@@ -677,7 +677,7 @@ body.pad #touch{display:none!important}
 
 <div id="loading"><div class="logo"><span class="a" style="font-size:60px">RALLY</span><span class="b" style="font-size:36px">RACING</span></div><div id="loadBar"><i></i></div><div id="loadTxt">Lade …</div></div>
 <div id="rotate"><div style="font-size:60px">⟳</div>Bitte das Handy quer halten</div>
-<div class="ver" id="ver">Rally Racing v14.14</div>
+<div class="ver" id="ver">Rally Racing v14.15</div>
 
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
 <script type="module">
@@ -2222,7 +2222,7 @@ const $ = s => document.querySelector(s);
 const $$ = s => document.querySelectorAll(s);
 const clamp = (x, a, b) => x < a ? a : x > b ? b : x;
 const lerp = (a, b, t) => a + (b - a) * t;
-const VERSION = 'v14.14';
+const VERSION = 'v14.15';
 const isTouch = matchMedia('(pointer:coarse)').matches || 'ontouchstart' in window;
 if (isTouch) document.body.classList.add('istouch');
 
@@ -2877,6 +2877,8 @@ function initAudio() {
   const comp = ac.createDynamicsCompressor(); comp.connect(master);
   AU.eng = ac.createGain(); AU.eng.gain.value = S.volEngine; AU.eng.connect(comp);
   AU.fx = ac.createGain(); AU.fx.gain.value = S.volFx; AU.fx.connect(comp);
+  AU.engLp = ac.createBiquadFilter(); AU.engLp.type = 'lowpass'; AU.engLp.Q.value = 0.7; AU.engLp.frequency.value = 6000; AU.engLp.connect(AU.eng);
+  AU.engS = ac.createGain(); AU.engS.gain.value = 1.4; AU.engS.connect(AU.engLp);
   // Motor: 5-Zylinder
   const shaper = ac.createWaveShaper(); const cv = new Float32Array(1024); for (let i = 0; i < 1024; i++) { const x = i / 511.5 - 1; cv[i] = Math.tanh(x * 2.6); } shaper.curve = cv;
   const lp = ac.createBiquadFilter(); lp.type = 'lowpass'; lp.Q.value = 2.5;
@@ -2930,6 +2932,46 @@ function tone(freq, dur, gain, type = 'sine', slide) {
   if (!AU.ctx) return; const ac = AU.ctx, t = ac.currentTime, o = ac.createOscillator(), g = ac.createGain(); o.type = type; o.frequency.setValueAtTime(freq, t); if (slide) o.frequency.exponentialRampToValueAtTime(slide, t + dur);
   g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(gain, t + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t + dur); o.connect(g); g.connect(AU.fx); o.start(t); o.stop(t + dur + 0.05);
 }
+// ---------- Motor aus echten Aufnahmen (ElevenLabs, siehe tools/make_engine.py) ----------
+// Je Auto fünf nahtlose Schleifen bei gemessener Drehzahl (Leerlauf bis Begrenzer). Gespielt werden immer die zwei Stufen,
+// zwischen denen die aktuelle Drehzahl liegt: Lautstärke-Überblendung (gleiche Leistung) und Tonhöhe = Drehzahl / Aufnahme-Drehzahl.
+// Solange die Aufnahmen nicht geladen sind (oder fehlen), läuft der synthetische Motor.
+const ENG = { man: null, id: null, ready: false, v: [], mix: 0 };
+function engLoad(id) {
+  const ac = AU.ctx; if (!ac || ENG.id === id) return; ENG.id = id;
+  const man = ENG.man || (ENG.man = fetch('engine/engine.json').then(r => r.json()).catch(() => null));
+  man.then(M => {
+    const cd = M && M.cars[id]; if (!cd || ENG.id !== id) return;
+    return Promise.all(cd.steps.map(st => fetch('engine/' + id + '_' + st.n + '.mp3').then(r => r.arrayBuffer()).then(a => ac.decodeAudioData(a)))).then(bufs => {
+      if (ENG.id !== id) return;
+      engStop();
+      const out = AU.engS, now = ac.currentTime;
+      ENG.v = cd.steps.map((st, i) => {
+        const src = ac.createBufferSource(), g = ac.createGain(); g.gain.value = 0;
+        src.buffer = bufs[i]; src.loop = true; src.loopStart = M.pad; src.loopEnd = M.pad + st.len;
+        src.connect(g); g.connect(out); src.start(now, M.pad + Math.random() * st.len);
+        return { src, g, ref: st.ref };
+      });
+      ENG.ready = true;
+    });
+  }).catch(() => { });
+}
+function engStop() { for (const v of ENG.v) { try { v.src.stop(); } catch (e) { } v.g.disconnect(); } ENG.v = []; ENG.ready = false; }
+function engUpd(rpm, thr, gain, t) {
+  const V = ENG.v, n = V.length; if (!n) return;
+  let i = 0; while (i < n - 2 && rpm > V[i + 1].ref) i++;
+  const a = V[i], b = V[i + 1] || a;
+  const x = b === a ? 0 : clamp(Math.log(rpm / a.ref) / Math.log(b.ref / a.ref), 0, 1);
+  // Lautstärke steigt mit der Drehzahl (die Aufnahmen sind auf gleiche Lautheit gebracht)
+  const lv = gain * (0.5 + 0.5 * clamp((rpm - 900) / 6500, 0, 1));
+  for (let j = 0; j < n; j++) {
+    const v = V[j], w = j === i ? Math.cos(x * Math.PI / 2) : j === i + 1 ? Math.sin(x * Math.PI / 2) : 0;
+    v.g.gain.setTargetAtTime(w * lv, t, 0.03);
+    if (w > 0) v.src.playbackRate.setTargetAtTime(clamp(rpm / v.ref, 0.45, 2.2), t, 0.03);
+  }
+  // ohne Gas: dumpfer (Schiebebetrieb), mit Gas: voller Klang
+  AU.engLp.frequency.setTargetAtTime(1400 + rpm * 0.5 + thr * 9000, t, 0.06);
+}
 let lastThr = 0, popT = 0, stoneT = 0;
 let wob = 0;
 function updAudio(dt) {
@@ -2947,8 +2989,12 @@ function updAudio(dt) {
   AU.o1.frequency.setTargetAtTime(f, t, k); AU.o2.frequency.setTargetAtTime(f * 0.5 * 1.004, t, k); AU.o3.frequency.setTargetAtTime(f * 0.25, t, k);
   AU.nbp.frequency.setTargetAtTime(f * 3, t, k);
   AU.lp.frequency.setTargetAtTime(Math.min(3400, 280 + rpm * 0.3 + thr * 1200) * (1 - topV * 0.18), t, k); AU.lp.Q.setTargetAtTime(2.5 - clamp((rpm - 5500) / 2500, 0, 1) * 1.3, t, 0.1);
-  AU.eg.gain.setTargetAtTime(on ? (0.16 + thr * 0.2) * (car.shiftT > 0 ? 0.45 : 1) : (state === 'menu' || state === 'brief' ? 0.05 : 0), t, 0.05);
-  AU.tb.frequency.setTargetAtTime(1600 + car.boost * 4200, t, 0.08); AU.tg.gain.setTargetAtTime(on ? car.boost * thr * 0.022 : 0, t, 0.08);
+  const eLvl = on ? (car.shiftT > 0 ? 0.45 : 1) : (state === 'menu' || state === 'brief' ? 0.3 : 0);
+  if (ENG.id !== S.car) engLoad(S.car);
+  ENG.mix += ((ENG.ready ? 1 : 0) - ENG.mix) * Math.min(1, dt * 3);   // weicher Wechsel vom Synth- zum Aufnahme-Motor
+  if (ENG.ready) engUpd(rpm, on ? thr : 0, eLvl * (on ? 0.62 + thr * 0.38 : 1) * ENG.mix, t);
+  AU.eg.gain.setTargetAtTime(on ? (0.16 + thr * 0.2) * (car.shiftT > 0 ? 0.45 : 1) * (1 - ENG.mix) : (state === 'menu' || state === 'brief' ? 0.05 * (1 - ENG.mix) : 0), t, 0.05);
+  AU.tb.frequency.setTargetAtTime(1600 + car.boost * 4200, t, 0.08); AU.tg.gain.setTargetAtTime(on ? car.boost * thr * 0.022 * (1 - ENG.mix * 0.6) : 0, t, 0.08);
   const v = car ? Math.abs(car.u) : 0;
   const beta = car && car.u > 3 ? Math.abs(Math.atan2(car.v, car.u)) : 0;
   const slide = car ? clamp(beta * 3.2 + car.spin * 1.5 + car.lock + (car.hb && v > 3 ? 0.6 : 0), 0, 1.5) : 0;
