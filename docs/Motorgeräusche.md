@@ -205,7 +205,7 @@ Alle neuen Quellen: Wikimedia Commons, **CC BY 3.0**, Lizenz und Urheber per Com
 - Fiat 130 Coupé (V6): nur 5 Abschnitte.
 
 **Offen:**
-- Stratos: oben +5,9/+9,8 Halbtöne (GTV6-Aufnahme dreht kaum über 4.200). Kandidaten für hohe V6-Drehzahlen, Download wegen
-  Drosselung gescheitert: `Alfa_Romeo_147_-_…(YouTube_tVyI5DC3F9k).opus`, `Alfa_Romeo_156_-_…(YouTube_UwnBSjQfJt8).opus`,
-  `Alfa_Romeo_159_-_…(YouTube_EA7OiOGca4A).opus`, `Renault_Laguna_II_V6_-_…(YouTube_F9eJ7lo4Zno).opus` (alle CC BY 3.0).
-  Falls eine davon ein Busso-V6 mit hohen Drehzahlen ist: als zweite Datei in `SOURCES["v6"]` eintragen, Skript erneut ausführen.
+- Stratos: oben +5,9/+9,8 Halbtöne (GTV6-Aufnahme dreht kaum über 4.200). Nachgeladen und geprüft (später am 15.11.2026),
+  keine hilft oben: Alfa 147 (tVyI5DC3F9k) nur 2 Abschnitte 2.900/3.600 U/min; Alfa 156 (UwnBSjQfJt8) und Renault Laguna II V6
+  (F9eJ7lo4Zno) keine gleichmäßigen Abschnitte; Alfa 159 (EA7OiOGca4A) 550–3.700 U/min. Gesucht bleibt eine V6-Aufnahme mit
+  gleichmäßigen Abschnitten über 5.000 U/min; eintragen als zweite Datei in `SOURCES["v6"]`, Skript erneut ausführen.
