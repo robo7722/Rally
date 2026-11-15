@@ -37,7 +37,8 @@ BASES = {   # Name: (Prompt mit {d}, Soll-U/min, Prompt-Treue, Länge s)
 CARS = {
     "mini":    (4, "classic 1960s Mini Cooper S rally car with a tiny 1.3 litre BMC A-series four-cylinder engine, high-pitched buzzy raspy small four-cylinder, twin SU carburettors, small sporty exhaust"),
     "fiat":    (4, "1970s Fiat 131 Abarth rally car with a 2.0 litre naturally aspirated twin-cam 16-valve four-cylinder engine, hard raspy induction roar, open straight-through exhaust, no turbo"),
-    "stratos": (6, "1970s Lancia Stratos HF rally car with the Ferrari Dino 2.4 litre naturally aspirated V6 engine, high-pitched exotic Italian V6 howl, triple Weber carburettors, no turbo"),
+    # v14.17: "high-pitched exotic V6 howl" ergab reine Heultöne ohne Verbrennung (klang wie ein Elektroauto) -> Verbrennung betonen
+    "stratos": (6, "Lancia Stratos HF rally car, Ferrari Dino 2.4 V6 petrol engine with Weber carburettors, loud raw gritty combustion, deep raspy exhaust roar, mechanical rattle, intake gurgle"),
     "r5":      (4, "1980s Renault 5 Turbo rally car with a 1.4 litre turbocharged four-cylinder mid-engine, raspy gruff four-cylinder with loud turbo whistle and wastegate chatter"),
     "bmw":     (4, "1980s BMW M3 E30 Group A rally car with the S14 2.3 litre naturally aspirated four-cylinder engine, individual throttle bodies, hard metallic high-revving rasp, no turbo"),
     "escort":  (4, "1990s Ford Escort RS Cosworth Group A rally car with a 2.0 litre turbocharged four-cylinder engine, deep gruff turbo four-cylinder with big turbo whoosh and anti-lag pops"),
@@ -81,9 +82,23 @@ def steady(x, win):
 def analyse(x, cyl, rpm_nom, win):
     start, st = steady(x, win); seg = x[start:start + int(win * SR_IN)]
     rpm, conf = measure(seg, cyl, rpm_nom)
+    # rauer Klang ohne klaren Ton (z. B. Stratos-Vollgas): Messung unsicher -> verlangte Drehzahl verwenden
+    # (die F1-Prompts treffen sie meist gut), statt anhand eines Zufallswerts stark zu verschieben
+    if conf < 0.25: rpm = float(rpm_nom)
     part = [measure(seg[i:i + SR_IN // 2], cyl, rpm)[0] for i in range(0, len(seg) - SR_IN // 2, SR_IN // 4)]
     pv = float(np.std(np.log(part)))
-    return dict(seg=seg, rpm=rpm, conf=conf, pv=pv, steady=st, score=st + pv * 6 + (1 - conf) * 0.4)
+    flat, low = timbre(seg)
+    # "Elektroauto": fast reine Töne (geringe spektrale Flachheit) UND keine tiefe Energie (kein Verbrennungs-/Auspuffdruck)
+    electric = flat < 0.02 and low < 0.1
+    return dict(seg=seg, rpm=rpm, conf=conf, pv=pv, steady=st, flat=flat, low=low, electric=electric,
+                score=st + pv * 6 + (1 - conf) * 0.4 + (3 if electric else 0))
+
+def timbre(s):
+    """(spektrale Flachheit 40 Hz-8 kHz, Anteil der Energie 30-250 Hz)"""
+    n = 8192; f = np.fft.rfftfreq(n, 1 / SR_IN); P = np.zeros(n // 2 + 1)
+    for i in range(0, len(s) - n, n // 2): P += np.abs(np.fft.rfft(s[i:i + n] * np.hanning(n))) ** 2
+    b = (f > 40) & (f < 8000); p = P[b]
+    return float(np.exp(np.mean(np.log(p + 1e-12))) / np.mean(p)), float(P[(f > 30) & (f < 250)].sum() / (P[(f > 30) & (f < 8000)].sum() + 1e-12))
 
 def shift(x, st):
     """Tonhöhe um st Halbtöne, Formanten bleiben (Rubberband)"""
@@ -112,12 +127,12 @@ def main():
         cyl, desc = CARS[cid]; base = {}
         for bn, (pt, rpm_nom, infl, dur) in BASES.items():
             best = None
-            for k in range(TAKES if bn != "schub" else 2):
+            for k in range(int(os.environ.get("TAKES", TAKES)) if bn != "schub" else 2):
                 raw = os.path.join(RAW, "%s_%s_%d.mp3" % (cid, bn, k))
                 v1.DUR = dur; generate(pt.format(d=desc), raw, dur, infl)
                 x = load(raw); a = analyse(x, cyl, rpm_nom, min(WIN, len(x) / SR_IN - 0.4))
-                print("  %-7s %-5s Take %d: %5.0f U/min (soll %d, Sicherheit %.2f), Tonhöhe ±%.3f, gleichmäßig %.3f, Wertung %.2f"
-                      % (cid, bn, k, a["rpm"], rpm_nom, a["conf"], a["pv"], a["steady"], a["score"]), flush=True)
+                print("  %-7s %-5s Take %d: %5.0f U/min (soll %d, Sicherheit %.2f), Tonhöhe ±%.3f, gleichmäßig %.3f, Klang %.3f/%2.0f%%, Wertung %.2f%s"
+                      % (cid, bn, k, a["rpm"], rpm_nom, a["conf"], a["pv"], a["steady"], a["flat"], a["low"] * 100, a["score"], "  ELEKTRISCH" if a["electric"] else ""), flush=True)
                 # Nähe zur Soll-Drehzahl zählt mit; beim Leerlauf ist leichtes Schwanken normal (Tonhöhe weniger streng)
                 a["score"] += 1.5 * abs(np.log(a["rpm"] / rpm_nom)) - (a["pv"] * 4 if bn == "leer" else 0)
                 if best is None or a["score"] < best[1]["score"]: best = (k, a)
@@ -153,7 +168,7 @@ def generate(prompt, path, dur, infl):
         except (urllib.error.HTTPError, urllib.error.URLError) as e:
             code = getattr(e, "code", 0)
             if code in (0, 429, 500, 502, 503) and attempt < 4: time.sleep(3 + attempt * 5); continue
-            sys.exit("Fehler %s" % code)
+            sys.exit("Fehler %s: %s" % (code, e.read().decode("utf-8", "replace")[:300] if hasattr(e, "read") else e))
     with open(path, "wb") as f: f.write(data)
 
 if __name__ == "__main__":

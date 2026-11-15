@@ -101,3 +101,22 @@ Vor jedem Push jetzt: Modul-Skript extrahieren und `node --check`, dann Browser-
 **Offen / Ideen:**
 - Die v1-Autos (Quattro, RS200, 959, S4, 205, Fulvia, Alpine) bei Bedarf ebenfalls auf v2 umstellen: `python tools/make_engine2.py <auto>` (Eintrag in `CARS` ergänzen).
 - Basisaufnahmen per Gehör prüfen; die Messung kann bei KI-Aufnahmen weiter danebenliegen.
+
+## v14.17 – Stratos klang wie ein Elektroauto
+Stand: 15.11.2026.
+
+**Messung:** Die oberen Stratos-Stufen waren fast reine Töne (spektrale Flachheit 0,004; andere Autos 0,03–0,13) mit **0 % Energie unter 250 Hz**:
+nur Heulen, keine Verbrennung, kein Auspuffdruck → E-Motor-Klang. Ursache: Prompt „high-pitched exotic Italian V6 howl“.
+Alle anderen v2-Autos geprüft: unauffällig (wenig Flachheit kommt dort mit viel Tiefton = normales Grollen).
+
+**Änderungen (`tools/make_engine2.py`):**
+- Stratos-Prompt betont Verbrennung: „loud raw gritty combustion, deep raspy exhaust roar, mechanical rattle, intake gurgle“
+  (das Wort „electric“ bewusst nicht verwendet, Verneinungen lenken das Modell oft erst dorthin). Prompt-Grenze bei ElevenLabs: **450 Zeichen**.
+- Neues Klangmaß `timbre()`: Flachheit 40 Hz–8 kHz und Tiefton-Anteil 30–250 Hz. **Elektro-Signatur = Flachheit < 0,02 und Tiefton < 10 %** →
+  Strafwert 3, solche Aufnahmen werden automatisch aussortiert (gilt für alle künftigen Autos).
+- Raue Aufnahmen ohne klaren Ton: Messung unsicher (Sicherheit < 0,25) → verlangte Drehzahl als Referenz statt Zufallswert
+  (Stratos-Vollgas maß 4.600 am Rand des Suchbereichs und wäre +8 Halbtöne verschoben worden).
+- `TAKES=4` als Umgebungsvariable für mehr Varianten.
+
+**Ergebnis Stratos** (Flachheit/Tiefton je Stufe): 0,005/99 · 0,006/98 · 0,001/99 · 0,011/93 · 0,014/85 · 0,065/63 · 0,066/56 · 0,082/55 (vorher oben 0,004/0).
+Kosten: ~700 Credits.

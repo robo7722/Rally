@@ -682,45 +682,45 @@
     {
      "f": "stratos_2.wav",
      "ref": 1850,
-     "src": "last_2 -5.8 HT"
+     "src": "tief_1 -2.4 HT"
     },
     {
      "f": "stratos_3.wav",
      "ref": 2600,
-     "src": "last_2 +0.1 HT"
+     "src": "last_1 -0.6 HT"
     },
     {
      "f": "stratos_4.wav",
      "ref": 3500,
-     "src": "tief_0 +4.9 HT"
+     "src": "last_1 +4.6 HT"
     },
     {
      "f": "stratos_5.wav",
      "ref": 4600,
-     "src": "voll_2 -8.1 HT"
+     "src": "voll_0 -6.0 HT"
     },
     {
      "f": "stratos_6.wav",
      "ref": 5900,
-     "src": "voll_2 -3.8 HT"
+     "src": "voll_0 -1.7 HT"
     },
     {
      "f": "stratos_7.wav",
      "ref": 7400,
-     "src": "voll_2 +0.1 HT"
+     "src": "voll_0 +2.2 HT"
     }
    ],
    "schub": {
     "f": "stratos_schub.wav",
-    "ref": 6263,
-    "src": "schub_0"
+    "ref": 5000,
+    "src": "schub_1"
    },
    "base": {
     "leer": 1076,
-    "tief": 2640,
-    "last": 2592,
-    "voll": 7338,
-    "schub": 6263
+    "tief": 2127,
+    "last": 2689,
+    "voll": 6500,
+    "schub": 5000
    }
   },
   "mini": {
