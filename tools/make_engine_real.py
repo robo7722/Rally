@@ -1,4 +1,4 @@
-# Motorgeräusche v3: echte Aufnahmen statt KI (siehe docs/Motorgeräusche.md, Abschnitt v14.18).
+# Motorgeräusche: nur echte Aufnahmen (seit v14.19 keine KI-Motoren mehr) (siehe docs/Motorgeräusche.md, Abschnitt v14.18).
 #
 # Quellen: frei lizenzierte Aufnahmen von Wikimedia Commons (CC BY 3.0, Urheber in SOURCES und engine/QUELLEN.md).
 # Die Motoren sind zu Gruppen zusammengefasst (weniger, dafür echte Klänge); welches Auto welche Gruppe nutzt, steht in GROUPS.
@@ -27,12 +27,17 @@ SOURCES = {   # Gruppe: (Commons-Datei, Zylinder, Urheber, Beschreibung)
                "Turbo-Vierzylinder (Mitsubishi Lancer Evolution VI, 4G63)"),
     "sauger4": ("Morris_Mini_-_engine_and_exhaust_sound_(YouTube_K-j53v8lwzM).opus", 4, "Luciano's Classics (YouTube), via Wikimedia Commons",
                 "Sauger-Vierzylinder (1969 Morris Mini Cooper 1000)"),
+    "turbo5": ("Audi_RS3_-_engine_and_exhaust_sound_(YouTube_uuEytKIzqeY).opus", 5, "via Wikimedia Commons (YouTube uuEytKIzqeY)",
+               "Turbo-Fünfzylinder (Audi RS3, 2,5 TFSI)"),
 }
 GROUPS = {
     # Fiat 131 und BMW M3 (drehfreudige 16V-Sauger bis >7000 U/min): die Mini-Aufnahme reicht nur bis ~3300 U/min, darüber
     # wäre bis +14 Halbtöne verschoben (Spektrum-Korrelation zum Original nur 0,64) -> echte hohe Drehzahlen des Lancer passen besser
     "turbo4": ["r5", "p205", "rs200", "s4", "delta", "escort", "celica", "lancer", "subaru", "fiat", "bmw"],
     "sauger4": ["mini", "fulvia", "alpine"],
+    # Quattro S1 (Fünfzylinder) direkt; 959 (Boxer-Sechszylinder) und Stratos (V6): keine echte Aufnahme verfügbar,
+    # der Fünfzylinder liegt näher an einem Sechszylinder als ein Vierzylinder (gleichmäßiger, höher)
+    "turbo5": ["audi", "p959", "stratos"],
 }
 LICENSE = "CC BY 3.0 (https://creativecommons.org/licenses/by/3.0)"
 
@@ -108,7 +113,10 @@ def make_loop(seg, st, f):
 def main():
     man_path = os.path.join(OUT, "engine.json"); man = json.load(open(man_path)); man.setdefault("groups", {})
     for g, (name, cyl, author, desc) in SOURCES.items():
-        x = load(fetch(name)); segs = segments(track(x))
+        try: x = load(fetch(name))
+        except SystemExit as e:
+            print(e, "-> Autos dieser Gruppe nutzen turbo4"); GROUPS["turbo4"] += GROUPS.pop(g); continue
+        segs = segments(track(x))
         print("%s: %d gleichmäßige Abschnitte, %s" % (g, len(segs), ", ".join("%.0f" % (s[2] * 120 / cyl) for s in sorted(segs, key=lambda s: s[2]))))
         steps = []
         for i, T in enumerate(LADDER):
@@ -122,10 +130,14 @@ def main():
             print("  %5d U/min <- %s" % (T, steps[-1]["src"]))
         man["groups"][g] = {"cyl": cyl, "v": 2, "steps": steps, "desc": desc,
                             "credit": {"file": "https://commons.wikimedia.org/wiki/File:" + name, "author": author, "license": LICENSE}}
-        for cid in GROUPS[g]:
+    for g, cars in GROUPS.items():
+        if g not in man["groups"]: continue
+        for cid in cars:
             man["cars"][cid] = {"g": g}
             for f in os.listdir(OUT):   # bisherige Einzel-Dateien dieses Autos entfernen
                 if f.startswith(cid + "_"): os.remove(os.path.join(OUT, f))
+    for g in [g for g in man["groups"] if g not in GROUPS or not GROUPS[g]]: del man["groups"][g]
+    man.pop("pad", None)
     json.dump(man, open(man_path, "w"), indent=1, ensure_ascii=False)
 
 if __name__ == "__main__":

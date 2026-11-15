@@ -677,7 +677,7 @@ body.pad #touch{display:none!important}
 
 <div id="loading"><div class="logo"><span class="a" style="font-size:60px">RALLY</span><span class="b" style="font-size:36px">RACING</span></div><div id="loadBar"><i></i></div><div id="loadTxt">Lade …</div></div>
 <div id="rotate"><div style="font-size:60px">⟳</div>Bitte das Handy quer halten</div>
-<div class="ver" id="ver">Rally Racing v14.18</div>
+<div class="ver" id="ver">Rally Racing v14.19</div>
 
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
 <script type="module">
@@ -2222,7 +2222,7 @@ const $ = s => document.querySelector(s);
 const $$ = s => document.querySelectorAll(s);
 const clamp = (x, a, b) => x < a ? a : x > b ? b : x;
 const lerp = (a, b, t) => a + (b - a) * t;
-const VERSION = 'v14.18';
+const VERSION = 'v14.19';
 const isTouch = matchMedia('(pointer:coarse)').matches || 'ontouchstart' in window;
 if (isTouch) document.body.classList.add('istouch');
 
@@ -2932,7 +2932,7 @@ function tone(freq, dur, gain, type = 'sine', slide) {
   if (!AU.ctx) return; const ac = AU.ctx, t = ac.currentTime, o = ac.createOscillator(), g = ac.createGain(); o.type = type; o.frequency.setValueAtTime(freq, t); if (slide) o.frequency.exponentialRampToValueAtTime(slide, t + dur);
   g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(gain, t + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t + dur); o.connect(g); g.connect(AU.fx); o.start(t); o.stop(t + dur + 0.05);
 }
-// ---------- Motor aus echten Aufnahmen (ElevenLabs, siehe docs/Motorgeräusche.md) ----------
+// ---------- Motor aus echten Aufnahmen (Wikimedia Commons, CC BY 3.0, siehe engine/QUELLEN.md und docs/Motorgeräusche.md) ----------
 // Je Auto eine Drehzahlleiter aus nahtlosen Loops (v2: 8 Stufen, WAV, alle aus wenigen Basisaufnahmen per Rubberband
 // verschoben -> klingt durchgehend wie ein Motor; v1: 5 MP3-Stufen mit Vor-/Nachlauf). Gespielt werden die zwei Stufen,
 // zwischen denen die Drehzahl liegt: Überblendung mit gleicher Leistung, Tonhöhe = Drehzahl / Stufen-Drehzahl.
@@ -4715,7 +4715,7 @@ function renderSettings() {
     <h3>TON &amp; MUSIK</h3><span>Musik</span>${rng('volMusic', 0, 1, 0.05)}
     <span>Motor</span>${rng('volEngine', 0, 1, 0.05)}
     <span>Effekte</span>${rng('volFx', 0, 1, 0.05)}
-    <small style="grid-column:1/-1;font-weight:400;font-size:11px;color:#9fb0c8;line-height:1.4">Motorgeräusche: echte Aufnahmen von <i>prone</i> (Lancer Evo VI) und <i>Luciano's Classics</i> (Morris Mini) über Wikimedia Commons, Lizenz CC BY 3.0, geschnitten und in der Tonhöhe angepasst. Übrige Motoren: ElevenLabs.</small>
+    <small style="grid-column:1/-1;font-weight:400;font-size:11px;color:#9fb0c8;line-height:1.4">Motorgeräusche: echte Aufnahmen über Wikimedia Commons (Lizenz CC BY 3.0): Lancer Evo VI von <i>prone</i>, Morris Mini von <i>Luciano's Classics</i>, geschnitten und in der Tonhöhe angepasst.</small>
     <h3>FAHRER</h3><span>Fahrerprofil</span><button class="sbtn" id="profBtn">${flag(S.nat || '')} ${esc(S.name)}</button>
     <span>Karriere <small style="color:#a9c4ff">${CAREER.unlocked.length}/${CAREER_CARS.length} Autos · ${CAREER.pts} Punkte</small></span><button class="sbtn danger" id="crReset">Karriere zurücksetzen</button>`;
   $('#setList').innerHTML = SETHTML; tabifySettings();

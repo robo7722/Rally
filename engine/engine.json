@@ -1,45 +1,7 @@
 {
- "pad": 0.1,
  "cars": {
   "audi": {
-   "cyl": 5,
-   "steps": [
-    {
-     "n": "idle",
-     "rpm": 950,
-     "ref": 929,
-     "len": 2.48,
-     "src": "idle_0"
-    },
-    {
-     "n": "low",
-     "rpm": 2200,
-     "ref": 2165,
-     "len": 2.48,
-     "src": "low_0"
-    },
-    {
-     "n": "mid",
-     "rpm": 3700,
-     "ref": 2937,
-     "len": 2.48,
-     "src": "low_2"
-    },
-    {
-     "n": "high",
-     "rpm": 5400,
-     "ref": 5598,
-     "len": 2.48,
-     "src": "high_1"
-    },
-    {
-     "n": "max",
-     "rpm": 7200,
-     "ref": 7240,
-     "len": 2.48,
-     "src": "high_0"
-    }
-   ]
+   "g": "turbo4"
   },
   "fiat": {
    "g": "turbo4"
@@ -69,44 +31,7 @@
    "g": "turbo4"
   },
   "p959": {
-   "cyl": 6,
-   "steps": [
-    {
-     "n": "idle",
-     "rpm": 950,
-     "ref": 1150,
-     "len": 2.48,
-     "src": "idle_2"
-    },
-    {
-     "n": "low",
-     "rpm": 2200,
-     "ref": 2312,
-     "len": 2.48,
-     "src": "mid_0"
-    },
-    {
-     "n": "mid",
-     "rpm": 3700,
-     "ref": 3196,
-     "len": 2.48,
-     "src": "low_2"
-    },
-    {
-     "n": "high",
-     "rpm": 5400,
-     "ref": 5683,
-     "len": 2.48,
-     "src": "max_3"
-    },
-    {
-     "n": "max",
-     "rpm": 7200,
-     "ref": 8751,
-     "len": 2.48,
-     "src": "max_4"
-    }
-   ]
+   "g": "turbo4"
   },
   "s4": {
    "g": "turbo4"
@@ -115,62 +40,7 @@
    "g": "turbo4"
   },
   "stratos": {
-   "cyl": 6,
-   "v": 2,
-   "steps": [
-    {
-     "f": "stratos_0.wav",
-     "ref": 900,
-     "src": "leer_2 -3.1 HT"
-    },
-    {
-     "f": "stratos_1.wav",
-     "ref": 1300,
-     "src": "leer_2 +3.3 HT"
-    },
-    {
-     "f": "stratos_2.wav",
-     "ref": 1850,
-     "src": "tief_1 -2.4 HT"
-    },
-    {
-     "f": "stratos_3.wav",
-     "ref": 2600,
-     "src": "last_1 -0.6 HT"
-    },
-    {
-     "f": "stratos_4.wav",
-     "ref": 3500,
-     "src": "last_1 +4.6 HT"
-    },
-    {
-     "f": "stratos_5.wav",
-     "ref": 4600,
-     "src": "voll_0 -6.0 HT"
-    },
-    {
-     "f": "stratos_6.wav",
-     "ref": 5900,
-     "src": "voll_0 -1.7 HT"
-    },
-    {
-     "f": "stratos_7.wav",
-     "ref": 7400,
-     "src": "voll_0 +2.2 HT"
-    }
-   ],
-   "schub": {
-    "f": "stratos_schub.wav",
-    "ref": 5000,
-    "src": "schub_1"
-   },
-   "base": {
-    "leer": 1076,
-    "tief": 2127,
-    "last": 2689,
-    "voll": 6500,
-    "schub": 5000
-   }
+   "g": "turbo4"
   },
   "mini": {
    "g": "sauger4"

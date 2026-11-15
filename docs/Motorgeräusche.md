@@ -157,3 +157,15 @@ Gefunden, aber wegen Drosselung (HTTP 429 von upload.wikimedia.org, auch mit Pau
 - Escort RS2000 laden (sobald Wikimedia nicht mehr drosselt) → echte Sauger-Aufnahme mit hohen Drehzahlen für Mini/Fulvia/Alpine (und evtl. 131/M3).
 - Subaru WRX STI laden → echter Boxer für das Impreza, falls gewünscht (aktuell Turbo-Gruppe, damit kein „Traktor“).
 - Kein Schub-Loop in den echten Gruppen (Fehlzündungen kommen synthetisch).
+
+## v14.19 – Nur noch echte Motorgeräusche, kein ElevenLabs mehr
+Stand: 15.11.2026. Wunsch: „Kein ElevenLabs mehr, nur noch die echten Motorensounds angepasst.“
+
+- Quattro S1, 959 und Stratos (bisher ElevenLabs) nutzen jetzt die echte **Turbo-Vierzylinder**-Aufnahme (Lancer Evo VI).
+- Gefunden: **Audi RS3** (2,5-TFSI-Fünfzylinder, Nachfahre des Quattro-Motors) – `File:Audi_RS3_-_engine_and_exhaust_sound_(YouTube_uuEytKIzqeY).opus`.
+  Download scheiterte (Wikimedia 429, 6 Versuche über 8 Minuten). Ist in `tools/make_engine_real.py` als Gruppe `turbo5` für
+  Quattro S1, 959 und Stratos eingetragen und wird automatisch genutzt, sobald der Download klappt (Skript erneut ausführen).
+  Lizenz/Urheber dann in `engine/QUELLEN.md` und Einstellungen ergänzen.
+- Entfernt: `tools/make_engine.py`, `tools/make_engine2.py` (ElevenLabs-Motoren), alle `audi_*`, `p959_*`, `stratos_*` in `engine/`.
+  Die Beifahrer-Stimme (voice/) ist weiterhin ElevenLabs – betrifft nur die Motoren.
+- `engine/` jetzt 16 WAV-Loops (2 Gruppen × 8 Stufen), ~3,5 MB.
