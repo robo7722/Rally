@@ -677,7 +677,7 @@ body.pad #touch{display:none!important}
 
 <div id="loading"><div class="logo"><span class="a" style="font-size:60px">RALLY</span><span class="b" style="font-size:36px">RACING</span></div><div id="loadBar"><i></i></div><div id="loadTxt">Lade …</div></div>
 <div id="rotate"><div style="font-size:60px">⟳</div>Bitte das Handy quer halten</div>
-<div class="ver" id="ver">Rally Racing v14.21</div>
+<div class="ver" id="ver">Rally Racing v14.22</div>
 
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
 <script type="module">
@@ -2222,7 +2222,7 @@ const $ = s => document.querySelector(s);
 const $$ = s => document.querySelectorAll(s);
 const clamp = (x, a, b) => x < a ? a : x > b ? b : x;
 const lerp = (a, b, t) => a + (b - a) * t;
-const VERSION = 'v14.21';
+const VERSION = 'v14.22';
 const isTouch = matchMedia('(pointer:coarse)').matches || 'ontouchstart' in window;
 if (isTouch) document.body.classList.add('istouch');
 
@@ -2877,8 +2877,6 @@ function initAudio() {
   const comp = ac.createDynamicsCompressor(); comp.connect(master);
   AU.eng = ac.createGain(); AU.eng.gain.value = S.volEngine; AU.eng.connect(comp);
   AU.fx = ac.createGain(); AU.fx.gain.value = S.volFx; AU.fx.connect(comp);
-  AU.engLp = ac.createBiquadFilter(); AU.engLp.type = 'lowpass'; AU.engLp.Q.value = 0.7; AU.engLp.frequency.value = 6000; AU.engLp.connect(AU.eng);
-  AU.engS = ac.createGain(); AU.engS.gain.value = 0; AU.engS.connect(AU.engLp);   // Ausgang des Aufnahme-Motors (engUpd regelt ihn)
   // Motor: 5-Zylinder
   const shaper = ac.createWaveShaper(); const cv = new Float32Array(1024); for (let i = 0; i < 1024; i++) { const x = i / 511.5 - 1; cv[i] = Math.tanh(x * 2.6); } shaper.curve = cv;
   const lp = ac.createBiquadFilter(); lp.type = 'lowpass'; lp.Q.value = 2.5;
@@ -2932,99 +2930,6 @@ function tone(freq, dur, gain, type = 'sine', slide) {
   if (!AU.ctx) return; const ac = AU.ctx, t = ac.currentTime, o = ac.createOscillator(), g = ac.createGain(); o.type = type; o.frequency.setValueAtTime(freq, t); if (slide) o.frequency.exponentialRampToValueAtTime(slide, t + dur);
   g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(gain, t + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t + dur); o.connect(g); g.connect(AU.fx); o.start(t); o.stop(t + dur + 0.05);
 }
-// ---------- Motor aus echten Aufnahmen (Wikimedia Commons, CC BY 3.0, siehe engine/QUELLEN.md und docs/Motorgeräusche.md) ----------
-// Aufbau nach der Anleitung aus F1Racing (docs/MOTORSOUND-ANLEITUNG.md dort): je Motorgruppe Schichten aus echten Aufnahmen
-//   Leerlauf-Loop · echte Gasstöße im Stand · Granular aus einem echten Durchzug · Loops konstanter Drehzahl oben · Schub-Loop (Gas weg).
-// Ältere Gruppen (v2: Drehzahl-Leiter aus 8 Loops) laufen über denselben Code (nur Loops + Schub).
-// Tonhöhe = echte Zündfrequenz (U/min / 60 × Zylinder / 2); scale passt die Spiel-Drehzahl an den aufgenommenen Motor an.
-// Ohne Aufnahmen läuft der synthetische Motor.
-const ENG = { man: null, id: null, ready: false, D: null, B: {}, v: [], gr: [], s: null, bl: null, blArm: true, blRel: 0, mix: 0 };
-function engCfg(M, id) {
-  let cd = M && M.cars[id]; if (cd && cd.g) cd = M.groups[cd.g]; if (!cd) return null;
-  if (cd.v === 3) return cd;
-  const zf = (cd.cyl || 4) / 2;   // v2: Leiter (ref in U/min) -> Loops mit Grundton, durchgehend überblendet
-  return { cyl: cd.cyl || 4, vol: 0.6, scale: 1, xf: [0, 1], loops: cd.steps.map(st => [st.f, st.ref * zf / 60]), blips: [], gran: null,
-    schub: cd.schub ? [cd.schub.f, cd.schub.ref * zf / 60, 0.35] : null };
-}
-function engLoad(id) {
-  const ac = AU.ctx; if (!ac || ENG.id === id) return; ENG.id = id;
-  const man = ENG.man || (ENG.man = fetch('engine/engine.json').then(r => r.json()).catch(() => null));
-  const get = f => ENG.B[f] ? Promise.resolve(ENG.B[f]) : fetch('engine/' + f).then(r => r.arrayBuffer()).then(a => ac.decodeAudioData(a)).then(b => (ENG.B[f] = b));
-  man.then(M => {
-    const D = engCfg(M, id); if (!D || ENG.id !== id) return;
-    const files = [...D.loops.map(l => l[0]), ...(D.blips || []), ...(D.gran ? D.gran.quellen.map(q => q.file) : []), ...(D.schub ? [D.schub[0]] : [])];
-    return Promise.all(files.map(get)).then(() => {   // erst wenn alles geladen ist (sonst Lücken im Drehzahlband)
-      if (ENG.id !== id) return;
-      engStop(); const now = ac.currentTime; ENG.D = D;
-      ENG.v = D.loops.map(([f, base]) => { const src = ac.createBufferSource(), g = ac.createGain(); src.buffer = ENG.B[f]; src.loop = true; g.gain.value = 0;
-        src.connect(g); g.connect(AU.engS); src.start(now, Math.random() * src.buffer.duration); return { src, g, base }; });
-      if (D.gran) for (const q of D.gran.quellen) { q.tt = q.tab.map(a => a[0]); q.rr = q.tab.map(a => a[1]); }
-      if (D.schub) { const g = ac.createGain(); g.gain.value = 0; g.connect(AU.eng); ENG.s = { src: null, g, base: D.schub[1], on: false }; }
-      ENG.ready = true;
-    });
-  }).catch(() => { });
-}
-function engStop() {
-  for (const v of ENG.v) { try { v.src.stop(); } catch (e) { } v.g.disconnect(); }
-  if (ENG.s) { try { ENG.s.src && ENG.s.src.stop(); } catch (e) { } ENG.s.g.disconnect(); }
-  if (ENG.bl) { try { ENG.bl.src.stop(); } catch (e) { } }
-  ENG.v = []; ENG.gr = []; ENG.s = null; ENG.bl = null; ENG.ready = false;
-}
-// rpmG: Spiel-Drehzahl · thr: Gas · lvl: Lautstärke (Zustand, Schaltlücke, Überblendung vom Synth) · on: Rennen läuft · still: Auto steht
-function engUpd(rpmG, thr, lvl, t, on, still) {
-  const D = ENG.D, V = ENG.v, n = V.length; if (!D || !n) return;
-  const rpm = rpmG * (D.scale || 1), fq = rpm / 60 * D.cyl / 2;   // echte Zündfrequenz des aufgenommenen Motors
-  // Anteil der Granular-Wiedergabe (Durchzug): ein zwischen von/bis, aus zwischen aus[0]/aus[1] (dort übernehmen die oberen Loops)
-  let gw = 0; if (D.gran) { const G = D.gran; gw = clamp((rpm - G.von) / (G.bis - G.von), 0, 1); if (G.aus) gw *= 1 - clamp((rpm - G.aus[0]) / (G.aus[1] - G.aus[0]), 0, 1); gw = gw * gw * (3 - 2 * gw); }
-  const lw = Math.cos(gw * Math.PI / 2);
-  if (n === 1) { V[0].g.gain.setTargetAtTime(lw, t, 0.03); V[0].src.playbackRate.setTargetAtTime(clamp(fq / V[0].base, 0.4, 2.2), t, 0.015); }
-  else {   // die zwei Loops um fq: gleich laut (Kosinus/Sinus), logarithmisch, nur im Fenster XF überblenden (dauerhaft gemischt = Schweben)
-    let i = 0; while (i < n - 2 && fq > V[i + 1].base) i++;
-    let x = clamp(Math.log(fq / V[i].base) / Math.log(V[i + 1].base / V[i].base), 0, 1); const XF = D.loops[i][2] || D.xf || [0.38, 0.24];
-    x = clamp((x - XF[0]) / XF[1], 0, 1); x = x * x * (3 - 2 * x);
-    V.forEach((v, k) => { const w = k === i ? Math.cos(x * Math.PI / 2) : k === i + 1 ? Math.sin(x * Math.PI / 2) : 0;
-      v.g.gain.setTargetAtTime(w * lw, t, 0.03); if (w > 0.001 || v.g.gain.value > 0.001) v.src.playbackRate.setTargetAtTime(clamp(fq / v.base, 0.4, 2.2), t, 0.015); });
-  }
-  if (D.gran && gw > 0 && (on || lvl > 0)) { const G = D.gran, a = Math.sin(gw * Math.PI / 2);
-    let x2 = G.quellen.length > 1 ? clamp((rpm - (G.wechsel - G.xf)) / (2 * G.xf), 0, 1) : 0; x2 = x2 * x2 * (3 - 2 * x2);   // Übergabe Durchzug 1 -> 2
-    G.quellen.forEach((q, k) => engGran(q, k, rpm, t, a * (k === 0 ? Math.cos(x2 * Math.PI / 2) : Math.sin(x2 * Math.PI / 2)), D.cyl)); }
-  // Gas weg: Schub-Loop (Blubbern/Knallen), bei jedem Lupfen an zufälliger Stelle neu gestartet
-  const sAmt = on && ENG.s ? clamp((0.45 - thr) / 0.35, 0, 1) * clamp((rpm - 3200) / 2000, 0, 1) : 0;
-  if (ENG.s) { const S2 = ENG.s, bS = ENG.B[D.schub[0]];
-    if (sAmt > 0.05 && !S2.on) { S2.on = true; try { S2.src && S2.src.stop(t + 0.1); } catch (e) { } const src = AU.ctx.createBufferSource(); src.buffer = bS; src.loop = true; src.connect(S2.g); src.start(t, Math.random() * bS.duration); S2.src = src; }
-    else if (sAmt < 0.01 && S2.on && S2.g.gain.value < 0.01) { S2.on = false; try { S2.src.stop(t + 0.05); } catch (e) { } S2.src = null; }
-    if (S2.src) S2.src.playbackRate.setTargetAtTime(clamp(fq / S2.base, 0.5, 1.8), t, 0.03);
-    S2.g.gain.setTargetAtTime(sAmt * D.schub[2] * D.vol * lvl * 1.6, t, sAmt > S2.g.gain.value ? 0.03 : 0.12); }
-  // Gasstoß im Stand = echte Aufnahme; die Loops schweigen solange. Gas nach der Spitze gehalten -> Gasstoß aus, Loops übernehmen.
-  if (D.blips && D.blips.length) { const B = ENG.bl;
-    if (thr < 0.4) ENG.blArm = true;
-    if (!B && on && still && thr > 0.45 && ENG.blArm) { ENG.blArm = false;
-      const f = D.blips[Math.floor(Math.random() * D.blips.length)], src = AU.ctx.createBufferSource(), g = AU.ctx.createGain(); src.buffer = ENG.B[f]; src.playbackRate.value = 0.96 + Math.random() * 0.08;
-      g.gain.value = 1.4 * D.vol / 0.6 * lvl; src.connect(g); g.connect(AU.eng); src.start(t); ENG.bl = { src, g, peak: t + 0.45, end: t + src.buffer.duration / src.playbackRate.value }; }
-    else if (B && (t > B.end - 0.3 || !on || !still || (thr > 0.5 && t > B.peak + 0.15))) { B.g.gain.setTargetAtTime(0, t, 0.08); try { B.src.stop(t + 0.5); } catch (e) { } ENG.bl = null; ENG.blRel = t + 0.4; }
-  }
-  AU.engLp.frequency.setTargetAtTime(1500 + thr * 10500, t, 0.05);   // Gas weg: dumpfer, Vollgas: offen
-  const gv = ENG.bl ? 0 : 1.4 * D.vol / 0.6 * lvl * (1 - 0.35 * sAmt);
-  AU.engS.gain.setTargetAtTime(gv, t, ENG.bl ? 0.02 : ENG.blRel && t < ENG.blRel ? 0.08 : D.gran && gv > AU.engS.gain.value ? 0.14 : 0.04);   // Gasgeben blendet weich ein
-}
-// Granular: alle 33 ms ein 100-ms-Korn (Hann, 3-fach überlappt) von der Stelle des Durchzugs, deren Drehzahl passt;
-// phasenrichtig (Fortsetzung des vorigen Korns + ganze Zündabstände), über dem Ende höchstens 1,04-fach höher.
-const GR_LEN = 0.1, GR_HOP = GR_LEN / 3, GR_WIN = (() => { const n = 64, w = new Float32Array(n); for (let k = 0; k < n; k++) w[k] = Math.sin(Math.PI * k / (n - 1)) ** 2 / 1.5; return w; })();
-function engGran(G, idx, rpm, t, amp, cyl) {
-  const buf = ENG.B[G.file]; if (!buf) return; const ac = AU.ctx;
-  const S2 = ENG.gr[idx] || (ENG.gr[idx] = { next: t + 0.01, s: 0, T: t, rate: 1 }), TT = G.tt, RR = G.rr, last = RR.length - 1;
-  if (S2.next < t) S2.next = t + 0.005;
-  while (S2.next < t + 0.07) {
-    const T0 = S2.next, r = clamp(rpm, RR[0], RR[last]); let k = 0; while (k < last - 1 && RR[k + 1] < r) k++;
-    const f = (r - RR[k]) / Math.max(1, RR[k + 1] - RR[k]), p = TT[k] + clamp(f, 0, 1) * (TT[k + 1] - TT[k]), rate = clamp(rpm / r, 0.55, 1.04), per = 120 / (cyl * r);
-    const cont = S2.s + (T0 - S2.T) * S2.rate; let s0 = cont + Math.round((p - cont) / per) * per;
-    if (!(Math.abs(s0 - p) < 0.06) || s0 < 0) s0 = p;
-    s0 = clamp(s0, 0, buf.duration - GR_LEN * rate - 0.005);
-    if (amp > 0.002) { const src = ac.createBufferSource(), g = ac.createGain(), w = GR_WIN.map(v => v * amp);
-      src.buffer = buf; src.playbackRate.value = rate; g.gain.value = 0; g.gain.setValueCurveAtTime(w, T0, GR_LEN); src.connect(g); g.connect(AU.engS); src.start(T0, s0, GR_LEN * rate + 0.002); }
-    S2.s = s0; S2.T = T0; S2.rate = rate; S2.next += GR_HOP;
-  }
-}
 let lastThr = 0, popT = 0, stoneT = 0;
 let wob = 0;
 function updAudio(dt) {
@@ -3042,12 +2947,8 @@ function updAudio(dt) {
   AU.o1.frequency.setTargetAtTime(f, t, k); AU.o2.frequency.setTargetAtTime(f * 0.5 * 1.004, t, k); AU.o3.frequency.setTargetAtTime(f * 0.25, t, k);
   AU.nbp.frequency.setTargetAtTime(f * 3, t, k);
   AU.lp.frequency.setTargetAtTime(Math.min(3400, 280 + rpm * 0.3 + thr * 1200) * (1 - topV * 0.18), t, k); AU.lp.Q.setTargetAtTime(2.5 - clamp((rpm - 5500) / 2500, 0, 1) * 1.3, t, 0.1);
-  const eLvl = on ? (car.shiftT > 0 ? 0.45 : 1) : (state === 'menu' || state === 'brief' ? 0.3 : 0);
-  if (ENG.id !== S.car) engLoad(S.car);
-  ENG.mix += ((ENG.ready ? 1 : 0) - ENG.mix) * Math.min(1, dt * 3);   // weicher Wechsel vom Synth- zum Aufnahme-Motor
-  if (ENG.ready) engUpd(rpm, on ? thr : 0, eLvl * (on ? 0.5 + 0.5 * thr : 1) * ENG.mix, t, on, !!car && Math.abs(car.u) < 1);
-  AU.eg.gain.setTargetAtTime(on ? (0.16 + thr * 0.2) * (car.shiftT > 0 ? 0.45 : 1) * (1 - ENG.mix) : (state === 'menu' || state === 'brief' ? 0.05 * (1 - ENG.mix) : 0), t, 0.05);
-  AU.tb.frequency.setTargetAtTime(1600 + car.boost * 4200, t, 0.08); AU.tg.gain.setTargetAtTime(on ? car.boost * thr * 0.022 * (1 - ENG.mix * 0.6) : 0, t, 0.08);
+  AU.eg.gain.setTargetAtTime(on ? (0.16 + thr * 0.2) * (car.shiftT > 0 ? 0.45 : 1) : (state === 'menu' || state === 'brief' ? 0.05 : 0), t, 0.05);
+  AU.tb.frequency.setTargetAtTime(1600 + car.boost * 4200, t, 0.08); AU.tg.gain.setTargetAtTime(on ? car.boost * thr * 0.022 : 0, t, 0.08);
   const v = car ? Math.abs(car.u) : 0;
   const beta = car && car.u > 3 ? Math.abs(Math.atan2(car.v, car.u)) : 0;
   const slide = car ? clamp(beta * 3.2 + car.spin * 1.5 + car.lock + (car.hb && v > 3 ? 0.6 : 0), 0, 1.5) : 0;
@@ -3070,7 +2971,7 @@ function updAudio(dt) {
   if (lastThr > 0.6 && thr < 0.2 && car.boost > 0.5) burst(2600, 0.9, 0.3, 0.35, 'bandpass', 'eng');
   if (car.shifted) { if (car.shifted > 0) { burst(2200, 1, 0.12, 0.2, 'bandpass', 'eng'); flames(0.7); } car.shifted = 0; }
   popT -= dt;
-  if (thr < 0.15 && rpm > 3800 && popT <= 0) { popT = 0.06 + Math.random() * 0.25; if (Math.random() < 0.6) { if (!ENG.s) burst(700 + Math.random() * 500, 0.7, 0.05 + Math.random() * 0.05, 0.6 + Math.random() * 0.6, 'lowpass', 'eng'); flames(0.6 + Math.random() * 0.6); } }   // mit Schub-Aufnahme knallt es dort, synthetisch nur die Flammen
+  if (thr < 0.15 && rpm > 3800 && popT <= 0) { popT = 0.06 + Math.random() * 0.25; if (Math.random() < 0.6) { burst(700 + Math.random() * 500, 0.7, 0.05 + Math.random() * 0.05, 0.6 + Math.random() * 0.6, 'lowpass', 'eng'); flames(0.6 + Math.random() * 0.6); } }
   // Steinschlag in den Radkästen, beim Driften deutlich mehr
   stoneT -= dt * (asph ? 0 : snow ? v / 30 : v / 14) * (1 + slide * 2.5) * (TH === THEMES.greece ? 0.45 : 1);
   if (!car.air && stoneT <= 0) { stoneT = Math.random(); tone(2500 + Math.random() * 3000, 0.03, (0.04 + Math.random() * 0.05) * (1 + slide), 'triangle'); }
@@ -4756,7 +4657,6 @@ function renderSettings() {
     <h3>TON &amp; MUSIK</h3><span>Musik</span>${rng('volMusic', 0, 1, 0.05)}
     <span>Motor</span>${rng('volEngine', 0, 1, 0.05)}
     <span>Effekte</span>${rng('volFx', 0, 1, 0.05)}
-    <small style="grid-column:1/-1;font-weight:400;font-size:11px;color:#9fb0c8;line-height:1.4">Motorgeräusche: echte Aufnahmen über Wikimedia Commons (Lizenz CC BY 3.0): Lancer Evo VI von <i>prone</i>, Lancia Delta Integrale von <i>Grzegorz Kalinecki</i>, Morris Mini von <i>Luciano's Classics</i>, Audi RS3 von <i>Jay Chesterman</i>, Subaru Impreza STI von <i>Great Explorer</i>, Porsche 911 GT3 RS von <i>Supercars67</i>, Alfa Romeo GTV6 von <i>Doppia Frizione</i>, geschnitten und in der Tonhöhe angepasst.</small>
     <h3>FAHRER</h3><span>Fahrerprofil</span><button class="sbtn" id="profBtn">${flag(S.nat || '')} ${esc(S.name)}</button>
     <span>Karriere <small style="color:#a9c4ff">${CAREER.unlocked.length}/${CAREER_CARS.length} Autos · ${CAREER.pts} Punkte</small></span><button class="sbtn danger" id="crReset">Karriere zurücksetzen</button>`;
   $('#setList').innerHTML = SETHTML; tabifySettings();

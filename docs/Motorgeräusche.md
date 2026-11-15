@@ -275,3 +275,21 @@ Alte Leiter-Gruppen (v2) laufen über denselben Code (`engCfg` wandelt sie in Lo
 - turbo5/boxer4/boxer6/v6 ebenfalls in Schichten aufbauen (lokal, Rohaufnahmen dort): Diagramme zeichnen, Abschnitte wählen, in `SCHICHTEN` eintragen.
 - turbo4 hat nur einen echten Gasstoß; Lancer-Aufnahme hat keinen Leerlauf. Bessere Turbo-Aufnahme mit Leerlauf + Gasstößen + Durchzug suchen.
 - `tools/engine_demo.py` entfernt (ersetzt durch die beiden Hörprobe-Werkzeuge).
+
+## v14.22 – Zurück zum synthetischen Motor
+Stand: 15.11.2026. Wunsch des Nutzers: „Lass uns wieder die synthetischen Sounds wie ursprünglich gehabt nehmen.“
+
+- `index.html`, `sw.js`, `README.md` auf den Stand **v14.14** zurückgesetzt (vor allen Motoraufnahmen): der Motor ist wieder der
+  ursprüngliche Web-Audio-Synthesizer (Abschnitt „Ton: Motor, Drift, Effekte, Musik“, `initAudio`/`updAudio`). Seit v14.14 hatte sich in
+  diesen Dateien nur der Motor-Code geändert, sonst nichts.
+- Entfernt: `engine/`, `engine_demo/`, `tools/make_engine_real.py`, `tools/make_engine_schichten.py`, `tools/engine_hoerprobe.py`,
+  `tools/engine_hoerprobe_spiel.js`, `docs/AUFGABE-echte-Motoraufnahmen.md`. Die Quellenangaben der Commons-Aufnahmen entfallen damit.
+- **Wiederherstellen**: alles liegt in der Git-Historie. Letzter Stand mit echten Aufnahmen (Schichten): Commit `15498bb` (v14.21),
+  z. B. `git checkout 15498bb -- engine tools/make_engine_schichten.py …` und `index.html` aus diesem Commit.
+
+### Rückblick (Kurzfassung)
+| Version | Ansatz | Ergebnis |
+|---|---|---|
+| v14.15–v14.17 | ElevenLabs, 5–8 KI-Loops je Auto | Drehzahl im Prompt nur grob getroffen, Stufen aus verschiedenen Aufnahmen, Stratos „wie Elektroauto“ |
+| v14.18–v14.20 | echte Commons-Aufnahmen, Drehzahl-Leiter | Lancer-Aufnahme falsch vermessen (Onboard nur 4.000–7.400 U/min, Oktavfehler) |
+| v14.21 | Schichten nach F1Racing-Anleitung | nicht mehr abgenommen – zurück zum Synthesizer |
