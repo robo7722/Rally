@@ -54,108 +54,296 @@
  },
  "groups": {
   "turbo4": {
+   "v": 3,
+   "desc": "Turbo-Vierzylinder (Lancia Delta Integrale: Leerlauf, Gasstöße, unterer Durchzug · Mitsubishi Lancer Evo VI: Fahrt)",
    "cyl": 4,
-   "v": 2,
-   "steps": [
-    {
-     "f": "turbo4_0.wav",
-     "ref": 900,
-     "src": "80.66-81.46 s, 1247 U/min, -5.6 HT"
-    },
-    {
-     "f": "turbo4_1.wav",
-     "ref": 1300,
-     "src": "76.07-76.87 s, 1309 U/min, -0.1 HT"
-    },
-    {
-     "f": "turbo4_2.wav",
-     "ref": 1850,
-     "src": "72.27-73.42 s, 1741 U/min, +1.1 HT"
-    },
-    {
-     "f": "turbo4_3.wav",
-     "ref": 2600,
-     "src": "41.58-42.28 s, 2549 U/min, +0.3 HT"
-    },
-    {
-     "f": "turbo4_4.wav",
-     "ref": 3500,
-     "src": "14.59-15.19 s, 3482 U/min, +0.1 HT"
-    },
-    {
-     "f": "turbo4_5.wav",
-     "ref": 4600,
-     "src": "47.03-47.73 s, 4937 U/min, -1.2 HT"
-    },
-    {
-     "f": "turbo4_6.wav",
-     "ref": 5900,
-     "src": "39.18-40.18 s, 6182 U/min, -0.8 HT"
-    },
-    {
-     "f": "turbo4_7.wav",
-     "ref": 7400,
-     "src": "101.45-102.05 s, 6820 U/min, +1.4 HT"
-    }
+   "vol": 0.6,
+   "scale": 1.0,
+   "loops": [
+    [
+     "turbo4_leer.wav",
+     38.5
+    ],
+    [
+     "turbo4_st1.wav",
+     230.9
+    ]
    ],
-   "desc": "Turbo-Vierzylinder (Mitsubishi Lancer Evolution VI, 4G63)",
-   "credit": {
-    "file": "https://commons.wikimedia.org/wiki/File:Mitsubishi_Lancer_Evolution_VI_-_engine_and_exhaust_sound_(YouTube_p2UANOqploM).opus",
-    "author": "prone (YouTube), via Wikimedia Commons",
-    "license": "CC BY 3.0 (https://creativecommons.org/licenses/by/3.0)"
-   }
+   "blips": [
+    "turbo4_blip1.wav"
+   ],
+   "gran": {
+    "quellen": [
+     {
+      "file": "turbo4_dz1.wav",
+      "tab": [
+       [
+        0.032,
+        2418
+       ],
+       [
+        0.132,
+        2430
+       ],
+       [
+        0.232,
+        2774
+       ],
+       [
+        0.332,
+        2815
+       ],
+       [
+        0.432,
+        2990
+       ],
+       [
+        0.532,
+        3232
+       ],
+       [
+        0.632,
+        3380
+       ],
+       [
+        0.732,
+        3490
+       ],
+       [
+        0.832,
+        3490
+       ],
+       [
+        0.932,
+        3490
+       ],
+       [
+        1.032,
+        4444
+       ],
+       [
+        1.132,
+        4528
+       ],
+       [
+        1.232,
+        4752
+       ],
+       [
+        1.332,
+        4974
+       ],
+       [
+        1.432,
+        5106
+       ]
+      ]
+     },
+     {
+      "file": "turbo4_dz2.wav",
+      "tab": [
+       [
+        0.032,
+        4266
+       ],
+       [
+        0.132,
+        4266
+       ],
+       [
+        0.232,
+        4285
+       ],
+       [
+        0.332,
+        4343
+       ],
+       [
+        0.432,
+        4423
+       ],
+       [
+        0.532,
+        4485
+       ],
+       [
+        0.632,
+        4571
+       ],
+       [
+        0.732,
+        4705
+       ],
+       [
+        0.832,
+        4799
+       ],
+       [
+        0.932,
+        4923
+       ],
+       [
+        1.032,
+        5026
+       ],
+       [
+        1.132,
+        5161
+       ],
+       [
+        1.232,
+        5274
+       ],
+       [
+        1.332,
+        5333
+       ],
+       [
+        1.432,
+        5423
+       ],
+       [
+        1.532,
+        5485
+       ],
+       [
+        1.632,
+        5614
+       ],
+       [
+        1.732,
+        5748
+       ],
+       [
+        1.832,
+        5889
+       ],
+       [
+        1.932,
+        5999
+       ],
+       [
+        2.032,
+        6114
+       ],
+       [
+        2.132,
+        6233
+       ],
+       [
+        2.232,
+        6336
+       ]
+      ]
+     }
+    ],
+    "von": 1386,
+    "bis": 2055,
+    "aus": [
+     5722,
+     6358
+    ],
+    "wechsel": 4714,
+    "xf": 447
+   },
+   "schub": [
+    "turbo4_schub.wav",
+    175.5,
+    0.35
+   ],
+   "credit": [
+    {
+     "file": "https://commons.wikimedia.org/wiki/File:Lancia_Delta_Integrale_-_engine_and_exhaust_sound_(YouTube_0qq7MZ00ipI).opus",
+     "author": "Grzegorz Kalinecki (YouTube), via Wikimedia Commons",
+     "license": "CC BY 3.0 (https://creativecommons.org/licenses/by/3.0)"
+    },
+    {
+     "file": "https://commons.wikimedia.org/wiki/File:Mitsubishi_Lancer_Evolution_VI_-_engine_and_exhaust_sound_(YouTube_p2UANOqploM).opus",
+     "author": "prone (YouTube), via Wikimedia Commons",
+     "license": "CC BY 3.0 (https://creativecommons.org/licenses/by/3.0)"
+    }
+   ]
   },
   "sauger4": {
+   "v": 3,
+   "desc": "Sauger-Vierzylinder (1969 Morris Mini Cooper 1000: Leerlauf, Gasstöße, Durchzug)",
    "cyl": 4,
-   "v": 2,
-   "steps": [
-    {
-     "f": "sauger4_0.wav",
-     "ref": 900,
-     "src": "20.54-21.79 s, 815 U/min, +1.7 HT"
-    },
-    {
-     "f": "sauger4_1.wav",
-     "ref": 1300,
-     "src": "20.54-21.79 s, 815 U/min, +8.1 HT"
-    },
-    {
-     "f": "sauger4_2.wav",
-     "ref": 1850,
-     "src": "22.99-23.64 s, 2554 U/min, -5.6 HT"
-    },
-    {
-     "f": "sauger4_3.wav",
-     "ref": 2600,
-     "src": "22.99-23.64 s, 2554 U/min, +0.3 HT"
-    },
-    {
-     "f": "sauger4_4.wav",
-     "ref": 3500,
-     "src": "25.24-26.39 s, 3341 U/min, +0.8 HT"
-    },
-    {
-     "f": "sauger4_5.wav",
-     "ref": 4600,
-     "src": "25.24-26.39 s, 3341 U/min, +5.5 HT"
-    },
-    {
-     "f": "sauger4_6.wav",
-     "ref": 5900,
-     "src": "25.24-26.39 s, 3341 U/min, +9.8 HT"
-    },
-    {
-     "f": "sauger4_7.wav",
-     "ref": 7400,
-     "src": "25.24-26.39 s, 3341 U/min, +13.8 HT"
-    }
+   "vol": 0.6,
+   "scale": 0.74,
+   "loops": [
+    [
+     "sauger4_leer.wav",
+     27.8
+    ]
    ],
-   "desc": "Sauger-Vierzylinder (1969 Morris Mini Cooper 1000)",
-   "credit": {
-    "file": "https://commons.wikimedia.org/wiki/File:Morris_Mini_-_engine_and_exhaust_sound_(YouTube_K-j53v8lwzM).opus",
-    "author": "Luciano's Classics (YouTube), via Wikimedia Commons",
-    "license": "CC BY 3.0 (https://creativecommons.org/licenses/by/3.0)"
-   }
+   "blips": [
+    "sauger4_blip1.wav",
+    "sauger4_blip2.wav",
+    "sauger4_blip3.wav"
+   ],
+   "gran": {
+    "quellen": [
+     {
+      "file": "sauger4_dz1.wav",
+      "tab": [
+       [
+        0.032,
+        1684
+       ],
+       [
+        0.132,
+        1860
+       ],
+       [
+        0.232,
+        2046
+       ],
+       [
+        0.332,
+        2573
+       ],
+       [
+        0.432,
+        3000
+       ],
+       [
+        0.532,
+        3478
+       ],
+       [
+        0.632,
+        3983
+       ],
+       [
+        0.732,
+        4285
+       ],
+       [
+        0.832,
+        4923
+       ],
+       [
+        0.932,
+        5303
+       ],
+       [
+        1.032,
+        5647
+       ]
+      ]
+     }
+    ],
+    "von": 1001,
+    "bis": 1432,
+    "aus": null
+   },
+   "credit": [
+    {
+     "file": "https://commons.wikimedia.org/wiki/File:Morris_Mini_-_engine_and_exhaust_sound_(YouTube_K-j53v8lwzM).opus",
+     "author": "Luciano's Classics (YouTube), via Wikimedia Commons",
+     "license": "CC BY 3.0 (https://creativecommons.org/licenses/by/3.0)"
+    }
+   ]
   },
   "turbo5": {
    "cyl": 5,

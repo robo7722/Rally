@@ -124,6 +124,7 @@ def make_loop(seg, st, f):
 def main():
     man_path = os.path.join(OUT, "engine.json"); man = json.load(open(man_path, encoding="utf-8")); man.setdefault("groups", {})
     for g, (cyl, desc, files) in SOURCES.items():
+        if g in ("turbo4", "sauger4"): continue   # seit v14.21 in Schichten aufgebaut: tools/make_engine_schichten.py
         try: xs = [load(fetch(name)) for name, _ in files]
         except SystemExit as e:
             old = man["groups"].get(g)

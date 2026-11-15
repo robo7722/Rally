@@ -209,3 +209,69 @@ Alle neuen Quellen: Wikimedia Commons, **CC BY 3.0**, Lizenz und Urheber per Com
   keine hilft oben: Alfa 147 (tVyI5DC3F9k) nur 2 Abschnitte 2.900/3.600 U/min; Alfa 156 (UwnBSjQfJt8) und Renault Laguna II V6
   (F9eJ7lo4Zno) keine gleichmäßigen Abschnitte; Alfa 159 (EA7OiOGca4A) 550–3.700 U/min. Gesucht bleibt eine V6-Aufnahme mit
   gleichmäßigen Abschnitten über 5.000 U/min; eintragen als zweite Datei in `SOURCES["v6"]`, Skript erneut ausführen.
+
+
+## v14.21 – Motorsound in Schichten nach der F1Racing-Anleitung
+Stand: 15.11.2026. Vorlage: F1Racing `docs/MOTORSOUND-ANLEITUNG.md` (Roadster v2.14, vom Nutzer abgenommen).
+Umgesetzt für die zwei Gruppen, deren Rohaufnahmen in der Cloud vorliegen: **turbo4** (10 Autos) und **sauger4** (Mini, Fulvia, Alpine).
+turbo5/boxer4/boxer6/v6 (Quattro, Impreza, 959, Stratos) laufen weiter als Drehzahl-Leiter aus v14.20 – Rohaufnahmen nur lokal.
+
+### Wichtigster Befund: die alte Turbo-Leiter war falsch gemessen
+Drehzahl-/Pegel-Diagramme der Aufnahmen (wie in der Anleitung, Abschnitt 3) zeigen:
+- **Lancer Evo VI = Onboard-Fahrt**, Drehzahl im Sägezahn durch die Gänge, **nur 4.000–7.400 U/min**, kein Leerlauf, keine niedrigen Drehzahlen.
+  Die alte Messung (kurzes Fenster, ohne Oktav-Prüfung) hielt Punkte bei 1.250–3.500 U/min für niedrige Drehzahlen – das waren Oktavfehler.
+  Folge in v14.18–v14.20: im Spiel lief bei 1.300 U/min in Wahrheit ein Motor mit ~5.000 U/min → „klingt falsch“.
+- **Morris Mini**: Leerlauf ~790 U/min (lange Periode geprüft, halbe Periode nicht periodisch), 3 echte Gasstöße (bis 2.950 / 4.250 / 5.750),
+  Fahrt 2.000–4.400 U/min. Ideal für die Vorlage.
+- **Lancia Delta Integrale** (neu als Quelle, CC BY 3.0, Grzegorz Kalinecki): Kaltstart – Gasstöße bis 4.200/5.200, freier Durchzug
+  2.400 → 5.160 U/min (8,15–9,7 s), danach 1 min erhöhter Leerlauf ~1.600 U/min.
+
+### Schichten (Datei `engine/engine.json`, Gruppen mit `"v": 3`)
+| Schicht | turbo4 | sauger4 |
+|---|---|---|
+| Leerlauf-Loop | Delta 30,5 s, 3 s, −6 HT → 38.5 Hz ≈ 1155 U/min | Mini 19,85 s, 1,6 s → 27.8 Hz ≈ 834 U/min |
+| Gasstöße | Delta 12,05 s (2,1 s) | Mini 7,85 s / 11,55 s / 15,65 s |
+| Durchzug (Granular) | Delta 8,15–9,7 s (2.418→5.161) + Lancer 11,95–14,3 s (4.267→6.358), Übergabe 4714 ± 447 | Mini 15,72–16,86 s (1.684→5.749) |
+| Granular ein / aus | 1386→2055 / [5722, 6358] | 1001→1432 / bis oben |
+| Stufe oben | Lancer 14,6 s (0,6 s, zu 2 s verlängert) ≈ 6.930 U/min | – |
+| Gas weg | Lancer 56,55 s ≈ 5.270 U/min | – (synthetische Fehlzündungen) |
+| Drehzahl-Faktor `scale` | 1,0 | 0,74 (Mini dreht ~6.000: Spiel 7.800 → Klang 5.770) |
+
+### Aufbereitung (`tools/make_engine_schichten.py`)
+Wie Anleitung Abschnitt 4: Tonhöhe der Loops glätten (`flatten`, 32-ms-Messung ±25 %), Loop-Naht gleich laut überblenden (kurze Abschnitte:
+Körner im Zündtakt auf 2 s), RMS 0,14, höchstens ±6 HT; Gasstöße: 10 ms ein, 0,25 s aus, Pegel über dem Leerlauf mit Exponent 0,45;
+Durchzug: Drehzahl-Tabelle (25 ms, Median ±0,1 s, monoton). **Zusätzlich**: Durchzug-Pegel auf eine glatte Zielkurve gebracht
+(0,11 → 0,17 mit der Drehzahl, Hüllkurve 0,2 s) – sonst Loch beim Anfahren (Delta-Durchzug beginnt kalt und leise, −9 dB) und an der Übergabe.
+Grundton jeder Schleife mit Drehzahl-Hinweis aus dem Diagramm gemessen (±35 %), sonst Oktavfehler (Lancer-Stufe maß erst 3.478 statt 6.927).
+
+### Spiel (`index.html`, `engCfg` / `engLoad` / `engUpd` / `engGran`)
+Port von `sndEngine`/`granTick` aus F1Racing: Loops logarithmisch mit Fenster `[0,38; 0,24]` + Smoothstep überblendet, Granular alle 33 ms
+ein 100-ms-Korn (phasenrichtig, über dem Ende ≤ 1,04-fach), Gasstoß im Stand (Gas > 45 % nach < 40 %, Auto steht; Loops stumm; Gas nach der
+Spitze gehalten → Loops übernehmen), Schub `(0,45 − Gas)/0,35 × (U/min − 3.200)/2.000` mit Neustart an zufälliger Stelle, Tiefpass
+1.500 + Gas·10.500 Hz, Gasgeben blendet weich ein (0,14 s). Synthetische Fehlzündungs-Knaller nur ohne Schub-Loop.
+Alte Leiter-Gruppen (v2) laufen über denselben Code (`engCfg` wandelt sie in Loops mit durchgehender Überblendung um).
+
+### Prüfung
+- `tools/engine_hoerprobe_spiel.js`: lädt den **echten Motor-Code** aus `index.html` in eine leere Seite und rendert offline denselben Ablauf
+  (OfflineAudioContext) → `engine_demo/<auto>.mp3` + Pegel je 0,1 s. Keine Fehler; Gasstöße, Körner, Schub laufen.
+  (Das ganze Spiel headless zu fahren ist zu langsam: Software-3D, jedes 50-ms-Warten > 1 s.)
+- `tools/engine_hoerprobe.py`: dasselbe in Python (ohne Browser). Ablauf/Zeittabelle:
+
+| Sekunde | Ablauf |
+|---|---|
+| 0–2,5 | Leerlauf |
+| 2,5 / 5,6 | Gasstoß im Stand |
+| 9,4–12,2 | Anfahren Vollgas bis 7.000 |
+| 12,2–12,4 | Schalten |
+| 12,4–14,4 | Vollgas 5.000 → 7.300 |
+| 14,4–17,0 | Gas weg bis Leerlauf |
+| 17,0–18,5 | Leerlauf |
+
+- Pegel: sauger4 ohne Sprünge außer dem gewollten Einsatz der Gasstöße; turbo4 nach Pegel-Glättung ohne Löcher, kleine Delle (~4 dB) an der
+  Übergabe Delta→Lancer (beide Durchzüge dort gleich laut 0,14–0,16 → natürliche Schwankung).
+- Zweiter Delta-Gasstoß (7,95 s) verworfen: beginnt im leisen Kaltstart, nach dem Angleichen fast doppelt so laut.
+
+### Offen
+- turbo5/boxer4/boxer6/v6 ebenfalls in Schichten aufbauen (lokal, Rohaufnahmen dort): Diagramme zeichnen, Abschnitte wählen, in `SCHICHTEN` eintragen.
+- turbo4 hat nur einen echten Gasstoß; Lancer-Aufnahme hat keinen Leerlauf. Bessere Turbo-Aufnahme mit Leerlauf + Gasstößen + Durchzug suchen.
+- `tools/engine_demo.py` entfernt (ersetzt durch die beiden Hörprobe-Werkzeuge).
