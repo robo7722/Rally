@@ -1,5 +1,7 @@
 # Aufgabe: Echte Motoraufnahmen laden und einbauen (lokal ausführen!)
 
+> **Erledigt in v14.20** (15.11.2026) – Ergebnis und offene Punkte: `docs/Motorgeräusche.md`, Abschnitt v14.20.
+
 > Muss **lokal** laufen: In Cloud-Sitzungen sperrt Wikimedia alle Downloads (HTTP 429).
 > Start: in einer lokalen Claude-Code-Sitzung im Rally-Ordner sagen: „Arbeite docs/AUFGABE-echte-Motoraufnahmen.md ab“.
 

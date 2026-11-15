@@ -28,7 +28,7 @@ def rpm_curve():
     return np.convolve(r, kern, "same"), np.convolve(t, kern, "same")
 
 def render(cid, M):
-    cd = M["cars"][cid]; pad = int(M["pad"] * SR)
+    cd = M["cars"][cid]; pad = int(M.get("pad", 0) * SR)
     if "g" in cd: cd = M["groups"][cd["g"]]   # zusammengefasste Motoren
     loops = []
     for st in cd["steps"]:
@@ -69,8 +69,8 @@ def render(cid, M):
 def main():
     args = sys.argv[1:]
     dst = os.path.join(ROOT, "engine_demo")
-    if args and not args[0] in json.load(open(os.path.join(ROOT, "engine", "engine.json")))["cars"]: dst = args.pop(0)
-    M = json.load(open(os.path.join(ROOT, "engine", "engine.json")))
+    if args and not args[0] in json.load(open(os.path.join(ROOT, "engine", "engine.json"), encoding="utf-8"))["cars"]: dst = args.pop(0)
+    M = json.load(open(os.path.join(ROOT, "engine", "engine.json"), encoding="utf-8"))
     os.makedirs(dst, exist_ok=True)
     for cid in args or list(M["cars"]):
         y = render(cid, M)

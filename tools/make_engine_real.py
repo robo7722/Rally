@@ -4,8 +4,8 @@
 # Die Motoren sind zu Gruppen zusammengefasst (weniger, dafür echte Klänge); welches Auto welche Gruppe nutzt, steht in GROUPS.
 #
 # Ablauf je Gruppe:
-#   1. Aufnahme laden (wird bei Bedarf von upload.wikimedia.org geholt, Ablage tools/_engine_raw/real/, nicht im Repo)
-#   2. Drehzahlverlauf messen: Zündfrequenz per Autokorrelation alle 50 ms (Vierzylinder: U/min = Hz x 30)
+#   1. Aufnahme(n) laden (wird bei Bedarf von upload.wikimedia.org geholt, Ablage tools/_engine_raw/real/, nicht im Repo)
+#   2. Drehzahlverlauf messen: Zündfrequenz per Autokorrelation alle 50 ms (U/min = Hz x 120 / Zylinder)
 #   3. gleichmäßige Abschnitte suchen: Tonhöhe stabil (±3 %), klare Periode, laut genug, mind. 0,35 s
 #   4. Drehzahlleiter LADDER: je Stufe der Abschnitt mit der kleinsten Tonhöhen-Verschiebung (Güte und Länge zählen mit),
 #      Abschnitt -> 2-s-Loop aus zufälligen Körnern im Zündtakt (texture) -> 3x hintereinander -> Rubberband (Formanten bleiben)
@@ -22,22 +22,32 @@ OUT = os.path.join(ROOT, "engine"); RAW = os.path.join(ROOT, "tools", "_engine_r
 SR_IN = 22050; SR = 32000; RMS = 0.14
 LADDER = [900, 1300, 1850, 2600, 3500, 4600, 5900, 7400]
 
-SOURCES = {   # Gruppe: (Commons-Datei, Zylinder, Urheber, Beschreibung)
-    "turbo4": ("Mitsubishi_Lancer_Evolution_VI_-_engine_and_exhaust_sound_(YouTube_p2UANOqploM).opus", 4, "prone (YouTube), via Wikimedia Commons",
-               "Turbo-Vierzylinder (Mitsubishi Lancer Evolution VI, 4G63)"),
-    "sauger4": ("Morris_Mini_-_engine_and_exhaust_sound_(YouTube_K-j53v8lwzM).opus", 4, "Luciano's Classics (YouTube), via Wikimedia Commons",
-                "Sauger-Vierzylinder (1969 Morris Mini Cooper 1000)"),
-    "turbo5": ("Audi_RS3_-_engine_and_exhaust_sound_(YouTube_uuEytKIzqeY).opus", 5, "via Wikimedia Commons (YouTube uuEytKIzqeY)",
-               "Turbo-Fünfzylinder (Audi RS3, 2,5 TFSI)"),
+C = "(YouTube), via Wikimedia Commons"
+SOURCES = {   # Gruppe: (Zylinder, Beschreibung, [(Commons-Datei, Urheber), ...]); mehrere Aufnahmen -> je Stufe der beste Abschnitt
+    "turbo4": (4, "Turbo-Vierzylinder (Mitsubishi Lancer Evolution VI, 4G63)",
+               [("Mitsubishi_Lancer_Evolution_VI_-_engine_and_exhaust_sound_(YouTube_p2UANOqploM).opus", "prone " + C)]),
+    "sauger4": (4, "Sauger-Vierzylinder (1969 Morris Mini Cooper 1000)",
+                [("Morris_Mini_-_engine_and_exhaust_sound_(YouTube_K-j53v8lwzM).opus", "Luciano's Classics " + C)]),
+    "turbo5": (5, "Turbo-Fünfzylinder (Audi RS3, 2,5 TFSI)",
+               [("Audi_RS3_-_engine_and_exhaust_sound_(YouTube_uuEytKIzqeY).opus", "Jay Chesterman " + C)]),
+    "boxer4": (4, "Turbo-Boxer-Vierzylinder (Subaru Impreza WRX STI, EJ25)",
+               [("Subaru_Impreza_STI_with_modified_exhaust_-_engine_and_exhaust_sound_(YouTube_7c4BSSRq3bo).opus", "Great Explorer " + C)]),
+    "boxer6": (6, "Boxer-Sechszylinder (Porsche 911 GT3 RS)",
+               [("Porsche_911_GT3_RS_-_engine_and_exhaust_sound_(YouTube_1t2wz1iLHJ4).opus", "Supercars67 " + C)]),
+    "v6": (6, "V6-Sauger (Alfa Romeo GTV6, Busso-V6)",
+           [("Alfa_Romeo_GTV6_-_engine_and_exhaust_sound_(YouTube_kX2PYswTWdg).opus", "Doppia Frizione " + C)]),
 }
 GROUPS = {
     # Fiat 131 und BMW M3 (drehfreudige 16V-Sauger bis >7000 U/min): die Mini-Aufnahme reicht nur bis ~3300 U/min, darüber
-    # wäre bis +14 Halbtöne verschoben (Spektrum-Korrelation zum Original nur 0,64) -> echte hohe Drehzahlen des Lancer passen besser
-    "turbo4": ["r5", "p205", "rs200", "s4", "delta", "escort", "celica", "lancer", "subaru", "fiat", "bmw"],
+    # wäre bis +14 Halbtöne verschoben (Spektrum-Korrelation zum Original nur 0,64) -> echte hohe Drehzahlen des Lancer passen besser.
+    # Geprüft v14.20: Ford Escort RS2000 (Sauger) reicht auch nur bis ~3500 U/min -> keine eigene Gruppe "sauger16v".
+    # Renault 5 Turbo 2: nur 32 s, fast nur hohe Drehzahlen (ab 3800 U/min) -> r5 bleibt bei turbo4.
+    "turbo4": ["r5", "p205", "rs200", "s4", "delta", "escort", "celica", "lancer", "fiat", "bmw"],
     "sauger4": ["mini", "fulvia", "alpine"],
-    # Quattro S1 (Fünfzylinder) direkt; 959 (Boxer-Sechszylinder) und Stratos (V6): keine echte Aufnahme verfügbar,
-    # der Fünfzylinder liegt näher an einem Sechszylinder als ein Vierzylinder (gleichmäßiger, höher)
-    "turbo5": ["audi", "p959", "stratos"],
+    "turbo5": ["audi"],      # Quattro S1: Fünfzylinder
+    "boxer4": ["subaru"],    # Impreza: Boxer-Vierzylinder
+    "boxer6": ["p959"],      # 959: Boxer-Sechszylinder (wie im 911)
+    "v6": ["stratos"],       # Stratos: Ferrari-Dino-V6 -> klassischer italienischer V6-Sauger
 }
 LICENSE = "CC BY 3.0 (https://creativecommons.org/licenses/by/3.0)"
 
@@ -59,14 +69,15 @@ def save_wav(path, x, sr=SR):
     with wave.open(path, "wb") as w: w.setnchannels(1); w.setsampwidth(2); w.setframerate(sr); w.writeframes(pcm.tobytes())
 
 def track(x, fmin=18, fmax=320, win=0.25, hop=0.05):
-    """(Zeit, Hz, Güte der Periode, dB) je Fenster"""
+    """(Zeit, Hz, Güte der Periode, dB) je Fenster; fmax = höchste messbare Zündfrequenz (Sechszylinder brauchen mehr)"""
     y = sosfiltfilt(butter(4, [15, 1200], btype="band", fs=SR_IN, output="sos"), x)
     W, H = int(win * SR_IN), int(hop * SR_IN); out = []
     for s in range(0, len(y) - W, H):
         seg = y[s:s + W] - y[s:s + W].mean(); r = np.sqrt(np.mean(seg ** 2))
         F = np.fft.rfft(seg, 2 * W); ac = np.fft.irfft(F * np.conj(F))[:W]; ac /= ac[0] + 1e-12
         lo, hi = int(SR_IN / fmax), int(SR_IN / fmin); i = lo + int(np.argmax(ac[lo:hi]))
-        out.append((s / SR_IN, SR_IN / i, ac[i], 20 * np.log10(r + 1e-9)))
+        q = ac[i] if lo < i < hi - 1 else 0.0   # Treffer am Rand des Suchbereichs = keine echte Periode (Messartefakt)
+        out.append((s / SR_IN, SR_IN / i, q, 20 * np.log10(r + 1e-9)))
     return np.array(out)
 
 def segments(t, minlen=0.35, tol=0.03, cmin=0.5):
@@ -111,25 +122,30 @@ def make_loop(seg, st, f):
     return out * RMS / (np.sqrt(np.mean(out ** 2)) + 1e-9)
 
 def main():
-    man_path = os.path.join(OUT, "engine.json"); man = json.load(open(man_path)); man.setdefault("groups", {})
-    for g, (name, cyl, author, desc) in SOURCES.items():
-        try: x = load(fetch(name))
+    man_path = os.path.join(OUT, "engine.json"); man = json.load(open(man_path, encoding="utf-8")); man.setdefault("groups", {})
+    for g, (cyl, desc, files) in SOURCES.items():
+        try: xs = [load(fetch(name)) for name, _ in files]
         except SystemExit as e:
-            print(e, "-> Autos dieser Gruppe nutzen turbo4"); GROUPS["turbo4"] += GROUPS.pop(g); continue
-        segs = segments(track(x))
+            old = man["groups"].get(g)
+            if old and all(os.path.exists(os.path.join(OUT, st["f"])) for st in old["steps"]):
+                print(e, "-> Gruppe %s bleibt wie bisher" % g); continue
+            print(e, "-> Autos dieser Gruppe nutzen turbo4"); GROUPS["turbo4"] += GROUPS.pop(g) if g != "turbo4" else []; continue
+        # Abschnitte aller Aufnahmen der Gruppe in einen Topf: (Start, Ende, Hz, Güte, dB, Aufnahme)
+        segs = [s + (k,) for k, x in enumerate(xs) for s in segments(track(x, fmax=max(320, 8500 * cyl / 120)))]
         print("%s: %d gleichmäßige Abschnitte, %s" % (g, len(segs), ", ".join("%.0f" % (s[2] * 120 / cyl) for s in sorted(segs, key=lambda s: s[2]))))
         steps = []
         for i, T in enumerate(LADDER):
             def cost(s):
                 st = 12 * np.log2(T / (s[2] * 120 / cyl))
                 return abs(st) + (1 - s[3]) * 4 - min(s[1] - s[0], 1.2) * 1.5
-            s = min(segs, key=cost); rpm = s[2] * 120 / cyl; st = 12 * np.log2(T / rpm)
+            s = min(segs, key=cost); rpm = s[2] * 120 / cyl; st = 12 * np.log2(T / rpm); x = xs[s[5]]
             a, b = int((s[0] + 0.05) * SR_IN), int((s[1] - 0.05) * SR_IN)
             fn = "%s_%d.wav" % (g, i); save_wav(os.path.join(OUT, fn), make_loop(x[a:b], st, s[2]))
-            steps.append({"f": fn, "ref": T, "src": "%.2f-%.2f s, %.0f U/min, %+.1f HT" % (s[0], s[1], rpm, st)})
+            steps.append({"f": fn, "ref": T, "src": "%s%.2f-%.2f s, %.0f U/min, %+.1f HT" % ("[%d] " % (s[5] + 1) if len(xs) > 1 else "", s[0], s[1], rpm, st)})
             print("  %5d U/min <- %s" % (T, steps[-1]["src"]))
         man["groups"][g] = {"cyl": cyl, "v": 2, "steps": steps, "desc": desc,
-                            "credit": {"file": "https://commons.wikimedia.org/wiki/File:" + name, "author": author, "license": LICENSE}}
+                            "credit": [{"file": "https://commons.wikimedia.org/wiki/File:" + name, "author": author, "license": LICENSE}
+                                       for name, author in files]}
     for g, cars in GROUPS.items():
         if g not in man["groups"]: continue
         for cid in cars:
@@ -138,7 +154,7 @@ def main():
                 if f.startswith(cid + "_"): os.remove(os.path.join(OUT, f))
     for g in [g for g in man["groups"] if g not in GROUPS or not GROUPS[g]]: del man["groups"][g]
     man.pop("pad", None)
-    json.dump(man, open(man_path, "w"), indent=1, ensure_ascii=False)
+    json.dump(man, open(man_path, "w", encoding="utf-8"), indent=1, ensure_ascii=False)
 
 if __name__ == "__main__":
     main()

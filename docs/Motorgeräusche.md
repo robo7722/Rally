@@ -169,3 +169,43 @@ Stand: 15.11.2026. Wunsch: „Kein ElevenLabs mehr, nur noch die echten Motorens
 - Entfernt: `tools/make_engine.py`, `tools/make_engine2.py` (ElevenLabs-Motoren), alle `audi_*`, `p959_*`, `stratos_*` in `engine/`.
   Die Beifahrer-Stimme (voice/) ist weiterhin ElevenLabs – betrifft nur die Motoren.
 - `engine/` jetzt 16 WAV-Loops (2 Gruppen × 8 Stufen), ~3,5 MB.
+
+## v14.20 – Eigene echte Aufnahmen für Quattro S1, Impreza, 959 und Stratos
+Stand: 15.11.2026, lokal ausgeführt (`docs/AUFGABE-echte-Motoraufnahmen.md`; in der Cloud sperrt Wikimedia mit HTTP 429).
+Alle neuen Quellen: Wikimedia Commons, **CC BY 3.0**, Lizenz und Urheber per Commons-API (`extmetadata`) geprüft.
+
+**Gruppen (6 Klangsätze):**
+| Gruppe | Aufnahme (Urheber) | Autos | Abdeckung / größte Verschiebung |
+|---|---|---|---|
+| turbo4 | Lancer Evo VI (prone) | R5, 205, RS200, S4, Delta, Escort, Celica, Lancer, 131, M3 | unverändert |
+| sauger4 | Morris Mini (Luciano's Classics) | Mini, Fulvia, Alpine | unverändert |
+| turbo5 | Audi RS3 (Jay Chesterman) | Quattro S1 | 450–6.800 U/min, max. −5,1 HT (1850) |
+| boxer4 | Subaru Impreza STI mit Sportauspuff (Great Explorer) | Impreza | 550–6.000 U/min, max. +3,6 HT (7400) |
+| boxer6 | Porsche 911 GT3 RS (Supercars67) | 959 | 1.040–8.480 U/min, max. +3,3 HT (4600) |
+| v6 | Alfa Romeo GTV6, Busso-V6 (Doppia Frizione) | Stratos | 390–4.200 U/min, oben +5,9 HT (5900) / +9,8 HT (7400) |
+
+**Skript (`tools/make_engine_real.py`):**
+- Messfehler behoben: Die Tonhöhensuche endete bei 320 Hz. Treffer genau am Rand sind keine echte Periode (Audi zeigte dort ~60
+  Scheinabschnitte bei „7.782 U/min“) → Randtreffer bekommen Güte 0. Obergrenze jetzt zylinderabhängig (8.500 U/min, mind. 320 Hz):
+  Sechszylinder wurden vorher nur bis 6.400 U/min erkannt.
+- `SOURCES` je Gruppe: (Zylinder, Beschreibung, Liste von (Datei, Urheber)). Mehrere Aufnahmen pro Gruppe möglich – je Stufe gewinnt der
+  beste Abschnitt aus allen. `credit` in `engine.json` ist jetzt eine Liste.
+- Ist eine Aufnahme gerade nicht ladbar, bleibt eine schon gebaute Gruppe erhalten (vorher fiel sie auf turbo4 zurück – beim
+  erneuten Ausführen hätte das Mini/Fulvia/Alpine umgehängt, weil Lancer/Mini nicht im Repo liegen).
+- `tools/engine_demo.py` lief seit v14.18 nicht mehr (`pad` fehlt bei Gruppen) – repariert.
+- Werkzeuge unter Windows (ARM64): `winget install Gyan.FFmpeg` (full build mit Rubberband), `pip install scipy`.
+
+**Geprüft und nicht genommen:**
+- Subaru WRX STI (Hungarian Supercar Spotters): nur bis ~3.500 U/min → Impreza STI genommen.
+- Ford Escort RS2000 (Shamrock): nur 1.230–3.460 U/min, oben +5 bis +13 HT → nicht besser als der Mini; keine Gruppe `sauger16v`,
+  131 und M3 bleiben bei turbo4.
+- Renault 5 Turbo 2 (ECHAPPEMENT LIBRE): 32 s, nur 3.800–8.300 U/min → R5 bleibt bei turbo4.
+- Porsche 911 Turbo (Adam Coats): bis 4.600 U/min, oben +8 HT; Porsche 996 und 911 GT2: fast nur Leerlauf; GT3 RS (hpwTF8TXcaA):
+  gut, aber kürzer als 1t2wz1iLHJ4.
+- Fiat 130 Coupé (V6): nur 5 Abschnitte.
+
+**Offen:**
+- Stratos: oben +5,9/+9,8 Halbtöne (GTV6-Aufnahme dreht kaum über 4.200). Kandidaten für hohe V6-Drehzahlen, Download wegen
+  Drosselung gescheitert: `Alfa_Romeo_147_-_…(YouTube_tVyI5DC3F9k).opus`, `Alfa_Romeo_156_-_…(YouTube_UwnBSjQfJt8).opus`,
+  `Alfa_Romeo_159_-_…(YouTube_EA7OiOGca4A).opus`, `Renault_Laguna_II_V6_-_…(YouTube_F9eJ7lo4Zno).opus` (alle CC BY 3.0).
+  Falls eine davon ein Busso-V6 mit hohen Drehzahlen ist: als zweite Datei in `SOURCES["v6"]` eintragen, Skript erneut ausführen.
